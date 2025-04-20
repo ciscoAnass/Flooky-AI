@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}Flooky AI - Contact Me{% endblock %}
+
+{% block content %}
+<div class="contact-container">
+    <div class="contact-header">
+        <div class="contact-icon">
+            <i class="fas fa-paper-plane"></i>
+        </div>
+        <h1 class="contact-title">Get in Touch</h1>
+        <p class="contact-subtitle">Have questions, feedback, or just want to say hello? I'd love to hear from you!</p>
+    </div>
+
+    <div class="contact-cards-container">
+        <!-- Email Contact Card -->
+        <div class="contact-card">
+            <div class="contact-card-header">
+                <div class="contact-method-icon">
+                    <i class="fas fa-envelope"></i>
+                </div>
+                <h2>Email</h2>
+            </div>
+            <div class="contact-card-body">
+                <p>Feel free to send me an email and I'll get back to you as soon as possible.</p>
+                
+                <div class="contact-detail-container">
+                    <div class="contact-detail">
+                        <code id="email-address" class="contact-value">hello@flooky.space</code>
+                        <button id="copy-email" class="btn btn-copy" data-bs-toggle="tooltip" data-bs-placement="top" title="Copy to clipboard">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="contact-actions">
+                    <a href="mailto:hello@flooky.space" class="btn btn-contact email">
+                        <i class="fas fa-envelope"></i> Send Email
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Social Media Card -->
+        <div class="contact-card">
+            <div class="contact-card-header">
+                <div class="contact-method-icon">
+                    <i class="fas fa-share-alt"></i>
+                </div>
+                <h2>Connect Online</h2>
+            </div>
+            <div class="contact-card-body">
+                <p>Follow me on these platforms to stay updated with Flooky AI and my other projects.</p>
+                
+                <div class="social-links-container">
+                    <a href="https://github.com/CiscoAnass" target="_blank" class="social-link github-link">
+                        <div class="social-icon">
+                            <i class="fab fa-github"></i>
+                        </div>
+                        <div class="social-details">
+                            <h3>GitHub</h3>
+                            <p>@CiscoAnass</p>
+                        </div>
+                        <div class="social-arrow">
+                            <i class="fas fa-chevron-right"></i>
+                        </div>
+                    </a>
+                    
+                    <a href="https://www.linkedin.com/in/anass-assim/" target="_blank" class="social-link linkedin-link">
+                        <div class="social-icon">
+                            <i class="fab fa-linkedin-in"></i>
+                        </div>
+                        <div class="social-details">
+                            <h3>LinkedIn</h3>
+                            <p>Connect professionally</p>
+                        </div>
+                        <div class="social-arrow">
+                            <i class="fas fa-chevron-right"></i>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Form Card -->
+    <div class="contact-form-container">
+        <div class="contact-card wide-card">
+            <div class="contact-card-header">
+                <div class="contact-method-icon">
+                    <i class="fas fa-comment-alt"></i>
+                </div>
+                <h2>Send a Message</h2>
+            </div>
+            <div class="contact-card-body">
+                <p>Use this form to send me a direct message. I'll respond to your inquiry as soon as possible.</p>
+                
+                <form id="contact-form" class="contact-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="name">Your Name</label>
+                            <input type="text" id="name" name="name" class="form-control" placeholder="Enter your name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Your Email</label>
+                            <input type="email" id="email" name="email" class="form-control" placeholder="Enter your email" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="subject">Subject</label>
+                        <input type="text" id="subject" name="subject" class="form-control" placeholder="What is this regarding?">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="message">Message</label>
+                        <textarea id="message" name="message" class="form-control" placeholder="Type your message here..." rows="5" required></textarea>
+                    </div>
+                    
+                    <div class="form-submit">
+                        <button type="submit" class="btn btn-contact submit">
+                            <i class="fas fa-paper-plane"></i> Send Message
+                        </button>
+                    </div>
+                </form>
+                
+                <div id="form-success" class="form-feedback success-message" style="display: none;">
+                    <i class="fas fa-check-circle"></i>
+                    <p>Your message has been sent successfully! I'll get back to you soon.</p>
+                </div>
+                
+                <div id="form-error" class="form-feedback error-message" style="display: none;">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <p>Oops! There was a problem sending your message. Please try again later or contact me directly via email.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/contact.js') }}"></script>
+{% endblock %}
