@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Flooky AI - Chat{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Initial Welcome View (shown by default) -->
+    <div id="welcome-container" class="row">
+        <div class="col-md-10 mx-auto text-center">
+            <div class="welcome-header mb-4">
+                <h1 class="display-4">Welcome to Flooky </h1>
+                <p class="lead">Your Private intelligent AI assistant</p>
+            </div>
+            
+            <div class="card welcome-card shadow">
+                <div class="card-body p-4">
+                    <div class="welcome-icon mb-4">
+                        <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Flooky Logo" width="120">
+                    </div>
+                    <h3 class="mb-3">How can I assist you today?</h3>
+                    <p class="mb-4">Ask me anything - I can help with information, creative tasks, problem-solving and more.</p>
+                    
+                    <div class="input-group initial-input-group">
+                        <input type="text" id="initial-message-input" class="form-control" 
+                               placeholder="Type your question here..." autocomplete="off">
+                        <button id="initial-send-button" class="btn btn-primary">
+                            <i class="fas fa-paper-plane me-1"></i> Ask Flooky
+                        </button>
+                    </div>
+                    
+                    <!-- Example questions -->
+                    <div class="example-questions mt-4">
+                        <p class="text-muted small mb-2">Try asking:</p>
+                        <div class="example-chips">
+                            <button class="example-chip" data-question="How does the blockchain technology function?">Blockchain Explained</button>
+                            <button class="example-chip" data-question="Explain quantum computing in simple terms">Explain quantum computing</button>
+                            <button class="example-chip" data-question="What is cloud computing and why is it useful?">Cloud Computing</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Features -->
+            <div class="row features-section mt-5">
+                <div class="col-md-4 mb-4">
+                    <div class="feature">
+                        <i class="fas fa-brain feature-icon"></i>
+                        <h5>Advanced Intelligence</h5>
+                        <p>Powered by Anthropic's Flooky for natural conversations and deep reasoning</p>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="feature">
+                        <i class="fas fa-history feature-icon"></i>
+                        <h5>Conversation Memory</h5>
+                        <p>Flooky maintains context throughout your entire conversation</p>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="feature">
+                        <i class="fas fa-lock feature-icon"></i>
+                        <h5>Private & Secure</h5>
+                        <p>Your conversations remain confidential and secure</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Chat View (hidden initially) -->
+    <div id="chat-container" class="row d-none">
+        <div class="col-md-10 mx-auto">
+            <div class="card shadow">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Flooky Logo" class="me-2" width="24">
+                        <h3 class="mb-0">Flooky</h3>
+                    </div>
+                    <button id="new-chat-button" class="btn btn-sm btn-outline">
+                        <i class="fas fa-plus-circle me-1"></i> New Chat
+                    </button>
+                </div>
+                
+                <!-- Chat Messages Area -->
+                <div class="card-body chat-container" id="chat-messages">
+                    <!-- Messages will be inserted here dynamically -->
+                </div>
+                
+                <!-- Typing Indicator -->
+                <div class="typing-indicator" id="typing-indicator">
+                    <div class="typing-bubble">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
+                    <div class="typing-text">Flooky is thinking...</div>
+                </div>
+                
+                <!-- Input Area -->
+                <div class="card-footer">
+                    <div class="input-group">
+                        <input type="text" id="message-input" class="form-control" 
+                               placeholder="Type your message here..." autocomplete="off">
+                        <button id="send-button" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i> Send
+                        </button>
+                    </div>
+                    <div class="mt-2 d-flex justify-content-end">
+                        <button id="reset-button" class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-trash-alt me-1"></i> Reset Conversation
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+{% endblock %}
