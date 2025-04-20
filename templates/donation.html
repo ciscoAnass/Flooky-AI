@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block title %}Flooky AI - Support the Project{% endblock %}
+
+{% block content %}
+<div class="donation-container">
+    <div class="donation-header">
+        <div class="donation-icon">
+            <i class="fas fa-heart pulse-heart"></i>
+        </div>
+        <h1 class="donation-title">Support Flooky AI</h1>
+        <p class="donation-subtitle">Your contributions help keep this project alive and growing</p>
+    </div>
+
+    <div class="donation-cards-container">
+        <!-- PayPal Donation Card -->
+        <div class="donation-card">
+            <div class="donation-card-header">
+                <div class="donation-method-icon">
+                    <i class="fab fa-paypal"></i>
+                </div>
+                <h2>PayPal Donation</h2>
+            </div>
+            <div class="donation-card-body">
+                <p>Support Flooky AI with a one-time or recurring donation through PayPal. Quick, secure, and convenient.</p>
+                
+                <div class="donation-amount-selector">
+                    <div class="amount-options">
+                        <button class="amount-option" data-amount="5">$5</button>
+                        <button class="amount-option" data-amount="10">$10</button>
+                        <button class="amount-option active" data-amount="20">$20</button>
+                        <button class="amount-option" data-amount="50">$50</button>
+                        <button class="amount-option" data-amount="custom">Custom</button>
+                    </div>
+                    
+                    <div class="custom-amount-container" style="display: none;">
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" class="form-control custom-amount-input" placeholder="Enter amount" min="1" value="20">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="donation-frequency">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="paypalFrequency" id="oneTime" value="one-time" checked>
+                        <label class="form-check-label" for="oneTime">One-time</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="paypalFrequency" id="monthly" value="monthly">
+                        <label class="form-check-label" for="monthly">Monthly</label>
+                    </div>
+                </div>
+                
+                <div class="donation-actions">
+                    <button id="paypal-donate-btn" class="btn btn-donate paypal">
+                        <i class="fab fa-paypal"></i> Donate with PayPal
+                    </button>
+                </div>
+
+                <!-- PayPal donation form (hidden) -->
+                <form id="paypal-form" action="https://www.paypal.com/donate" method="post" target="_blank" >
+                    <input type="hidden" name="hosted_button_id" value="82XCSU5U4X26N" />
+                    </form>
+                    
+                    <!-- Replace with your PayPal business ID -->
+                    <input type="hidden" name="business" value="YOUR_PAYPAL_EMAIL@example.com">
+                    <input type="hidden" name="currency_code" value="USD">
+                    <input type="hidden" name="amount" id="paypal-amount" value="20">
+                    <!-- For recurring donations -->
+                    <input type="hidden" name="cmd" id="paypal-cmd" value="_donations">
+                </form>
+            </div>
+        </div>
+
+        <!-- Ethereum Donation Card -->
+        <div class="donation-card">
+            <div class="donation-card-header">
+                <div class="donation-method-icon">
+                    <i class="fab fa-ethereum"></i>
+                </div>
+                <h2>Ethereum Donation</h2>
+            </div>
+            <div class="donation-card-body">
+                <p>Prefer cryptocurrency? Support Flooky AI with Ethereum (ETH). Scan the QR code or copy the wallet address below.</p>
+                
+                <div class="eth-donation-container">
+                    <div class="eth-qr-code">
+                        <!-- QR code will be generated via JS -->
+                        <div id="eth-qr-placeholder" class="qr-placeholder">
+                            <img src="{{ url_for('static', filename='img/QR.png') }}" alt="QR Code Placeholder" class="qr-placeholder-image">
+                        </div>
+                    </div>
+                    
+                    
+                    <div class="eth-address-container">
+                        <!-- Replace with your actual Ethereum wallet address -->
+                        <code id="eth-address" class="eth-address">0x8d43BDaeC723b521692514ae779d2fd0B2F5652C</code>
+                        <button id="copy-eth-address" class="btn btn-copy" data-bs-toggle="tooltip" data-bs-placement="top" title="Copy to clipboard">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="donation-actions">
+                    <a href="https://metamask.io/" target="_blank" class="btn btn-outline metamask">
+                        <i class="fas fa-external-link-alt"></i> Open in MetaMask
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!--    Bizum Donarion    -->
+
+<!-- Bizum Donation Card - Add this after the Ethereum card in donation.html -->
+<div class="donation-card">
+    <div class="donation-card-header">
+        <div class="donation-method-icon bizum-icon">
+            <i class="fas fa-mobile-alt"></i>
+        </div>
+        <h2>Bizum Donation (Spain)</h2>
+    </div>
+    <div class="donation-card-body">
+        <p>¿Eres de España? Puedes apoyar Flooky AI con Bizum de forma rápida y sencilla.</p>
+        
+        <div class="bizum-donation-container">
+            <div class="bizum-number-container">
+                <h4>Mi número de Bizum:</h4>
+                <div class="bizum-number-display">
+                    <code id="bizum-number" class="bizum-number">+34 662055990</code>
+                    <button id="copy-bizum-number" class="btn btn-copy" data-bs-toggle="tooltip" data-bs-placement="top" title="Copiar número">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+                <small class="bizum-note">* Reemplaza con tu número real de Bizum</small>
+            </div>
+            
+            <div class="bizum-steps">
+                <h5>Cómo donar con Bizum:</h5>
+                <ol>
+                    <li>Abre la app de tu banco o la app de Bizum</li>
+                    <li>Selecciona enviar dinero o pagar</li>
+                    <li>Introduce el número de teléfono mostrado arriba</li>
+                    <li>Escribe "Donación Flooky AI" en el concepto</li>
+                    <li>Confirma el pago</li>
+                </ol>
+            </div>
+        </div>
+        
+        <div class="donation-actions">
+            <a href="https://bizum.es/como-funciona/" target="_blank" class="btn btn-outline bizum">
+                <i class="fas fa-info-circle"></i> Más información sobre Bizum
+            </a>
+        </div>
+    </div>
+</div>
+
+
+    <!-- Donation Benefits Section -->
+    <div class="donation-benefits">
+        <h3>Why Support Flooky AI?</h3>
+        <div class="benefits-grid">
+            <div class="benefit-item">
+                <div class="benefit-icon">
+                    <i class="fas fa-server"></i>
+                </div>
+                <h4>Server Costs</h4>
+                <p>Help cover hosting expenses and computing resources to keep Flooky running smoothly.</p>
+            </div>
+            <div class="benefit-item">
+                <div class="benefit-icon">
+                    <i class="fas fa-rocket"></i>
+                </div>
+                <h4>New Features</h4>
+                <p>Your support enables the development of exciting new capabilities and improvements.</p>
+            </div>
+            <div class="benefit-item">
+                <div class="benefit-icon">
+                    <i class="fas fa-code"></i>
+                </div>
+                <h4>Open Source</h4>
+                <p>Flooky AI is a project committed to sharing knowledge and innovation.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Thank You Message -->
+    <div class="donation-thank-you">
+        <div class="thank-you-icon">
+            <i class="fas fa-hand-holding-heart"></i>
+        </div>
+        <h3>Thank You for Your Support!</h3>
+        <p>Every contribution makes a difference. Your generosity helps Flooky AI continue to grow and improve.</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/contact.js') }}"></script>
+
+{% endblock %}
+
