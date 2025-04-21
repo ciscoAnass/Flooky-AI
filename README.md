@@ -1,6 +1,6 @@
-# Claude Chatbot - University Project
+# FLooky AI
 
-A simple web-based chatbot powered by Anthropic's Claude API, created as a university project.
+A simple web-based chatbot powered by Anthropic's Claude API, created as a personal project.
 
 ## Features
 
