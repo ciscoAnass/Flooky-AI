@@ -1530,3 +1530,149 @@ async function sendContactForm(formData) {
     }
 }
 
+// ============================= Voice Recording ======================================
+let mediaRecorder;
+let audioChunks = [];
+let isRecording = false;
+let audioButton;
+let audioStream; // Variable to store the media stream
+
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // Initialize audio recording button
+    audioButton = document.getElementById('audio-button');
+    
+    if (audioButton) {
+        audioButton.addEventListener('click', toggleRecording);
+    }
+});
+
+// Function to toggle recording state
+function toggleRecording() {
+    if (!isRecording) {
+        startRecording();
+    } else {
+        stopRecording();
+    }
+}
+
+// Function to start voice recording
+async function startRecording() {
+    audioChunks = [];
+    
+    try {
+        // Get user media stream and store it in audioStream variable
+        audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(audioStream);
+        
+        mediaRecorder.addEventListener('dataavailable', event => {
+            audioChunks.push(event.data);
+        });
+        
+        mediaRecorder.addEventListener('stop', processRecording);
+        
+        mediaRecorder.start();
+        isRecording = true;
+        
+        // Update UI - just change the button appearance
+        audioButton.classList.add('recording');
+        audioButton.innerHTML = '<i class="fas fa-stop"></i>';
+        
+        // Disable the text input while recording to avoid confusion
+        document.getElementById('message-input').disabled = true;
+        document.getElementById('send-button').disabled = false;
+        
+    } catch (error) {
+        console.error('Error accessing the microphone:', error);
+        alert('Error: Unable to access microphone. Please check your permissions.');
+    }
+}
+
+// Function to stop voice recording
+function stopRecording() {
+    if (mediaRecorder && isRecording) {
+        mediaRecorder.stop();
+        isRecording = false;
+        
+        // Stop all audio tracks to release the microphone
+        if (audioStream) {
+            audioStream.getTracks().forEach(track => {
+                track.stop();
+            });
+            audioStream = null;
+        }
+        
+        // Update UI
+        audioButton.classList.remove('recording');
+        audioButton.classList.add('processing');
+        audioButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    }
+}
+
+// Function to process the recorded audio
+async function processRecording() {
+    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+    
+    const formData = new FormData();
+    formData.append('audio', audioBlob);
+    
+    try {
+        const response = await fetch('/api/transcribe', {
+            method: 'POST',
+            body: formData,
+        });
+        
+        const data = await response.json();
+        
+        // Reset UI
+        audioButton.classList.remove('processing');
+        audioButton.innerHTML = '<i class="fas fa-microphone"></i>';
+        
+        // Re-enable the text input and send button
+        document.getElementById('message-input').disabled = false;
+        document.getElementById('send-button').disabled = false;
+        
+        if (data.error) {
+            alert('Transcription error: ' + data.error);
+            return;
+        }
+        
+        // If transcription successful and not empty
+        if (data.transcript && data.transcript.trim() !== '') {
+            // Set the transcript as the input value
+            const messageInput = document.getElementById('message-input');
+            messageInput.value = data.transcript;
+            
+            // Automatically send the message
+            sendMessage();
+        } else {
+            alert('No speech detected. Please try again.');
+        }
+        
+    } catch (error) {
+        console.error('Error transcribing audio:', error);
+        alert('Error transcribing audio. Please try again.');
+        
+        // Reset UI on error
+        audioButton.classList.remove('processing');
+        audioButton.innerHTML = '<i class="fas fa-microphone"></i>';
+        
+        // Re-enable the text input and send button
+        document.getElementById('message-input').disabled = false;
+        document.getElementById('send-button').disabled = false;
+    }
+}
+
+
+function cleanupAudioStream() {
+    if (audioStream) {
+        audioStream.getTracks().forEach(track => {
+            track.stop();
+        });
+        audioStream = null;
+    }
+}
+
+// Add an event listener to clean up when the page is unloaded
+window.addEventListener('beforeunload', cleanupAudioStream);
+

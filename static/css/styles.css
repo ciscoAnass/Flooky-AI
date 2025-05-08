@@ -2558,3 +2558,111 @@ pre {
       font-size: 1.1rem;
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Audio Recording Button Styles */
+.audio-btn {
+  background-color: #f0f0f0;
+  color: #555;
+  border: none;
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.audio-btn:hover {
+  background-color: #e0e0e0;
+  color: #6c5ce7;
+}
+
+.audio-btn:active {
+  transform: scale(0.95);
+}
+
+/* Recording state */
+.audio-btn.recording {
+  background-color: #e74c3c;
+  color: white;
+  animation: pulse-button 1.5s infinite;
+}
+
+/* Processing state */
+.audio-btn.processing {
+  background-color: #f39c12;
+  color: white;
+}
+
+/* Pulse animation for the button itself */
+@keyframes pulse-button {
+  0% {
+    box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(231, 76, 60, 0);
+    transform: scale(1.05);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(231, 76, 60, 0);
+    transform: scale(1);
+  }
+}
+
+/* Position the input group for correct button order */
+.card-footer .input-group {
+  display: flex;
+  align-items: center;
+}
+
+/* Make sure the audio button is on the left */
+.card-footer .input-group .audio-btn {
+  order: 1;
+}
+
+.card-footer .input-group input {
+  order: 2;
+}
+
+.card-footer .input-group .btn-primary {
+  order: 3;
+}
