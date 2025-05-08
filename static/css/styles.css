@@ -2559,40 +2559,6 @@ pre {
   }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /* Audio Recording Button Styles */
 .audio-btn {
   background-color: #f0f0f0;
@@ -2665,4 +2631,24 @@ pre {
 
 .card-footer .input-group .btn-primary {
   order: 3;
+}
+
+
+/* Audio button styling */
+.audio-btn {
+  position: relative;
+}
+
+.audio-btn.playing {
+  color: var(--primary-color, #6c5ce7);
+}
+
+.audio-btn.playing i.fa-pause {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
 }

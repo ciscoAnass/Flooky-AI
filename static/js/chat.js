@@ -18,6 +18,7 @@ let conversationId = null;
 let isFirstMessage = true;
 let isTyping = false;
 let lastTypingTime = 0;
+let currentAudio = null;
 
 // Event Listeners - Welcome Screen
 initialSendButton.addEventListener('click', handleInitialMessage);
@@ -313,59 +314,68 @@ iconSpan.classList.add('message-icon');
     const minutes = now.getMinutes().toString().padStart(2, '0');
     timeDiv.textContent = `${hours}:${minutes}`;
     
-    // Add message actions for bot messages (copy, thumbs up/down)
-    if (sender === 'bot') {
-        const actionsDiv = document.createElement('div');
-        actionsDiv.classList.add('message-actions');
+// Add message actions for bot messages (copy, thumbs up/down)
+if (sender === 'bot') {
+    const actionsDiv = document.createElement('div');
+    actionsDiv.classList.add('message-actions');
+    
+    // Copy button
+    const copyBtn = document.createElement('button');
+    copyBtn.classList.add('action-btn');
+    copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copy';
+    copyBtn.addEventListener('click', function() {
+        copyToClipboard(content.replace(/<[^>]*>/g, ''));
         
-        // Copy button
-        const copyBtn = document.createElement('button');
-        copyBtn.classList.add('action-btn');
-        copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copy';
-        copyBtn.addEventListener('click', function() {
-            copyToClipboard(content.replace(/<[^>]*>/g, ''));
-            
-            // Show feedback
-            copyBtn.innerHTML = '<i class="fas fa-check"></i> Copied!';
-            setTimeout(() => {
-                copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copy';
-            }, 1500);
-        });
-        
-        // Thumbs up button
-        const thumbsUpBtn = document.createElement('button');
-        thumbsUpBtn.classList.add('action-btn');
-        thumbsUpBtn.innerHTML = '<i class="fas fa-thumbs-up"></i>';
-        thumbsUpBtn.addEventListener('click', function() {
-            // Toggle active state for this button
-            thumbsUpBtn.classList.toggle('active');
-            // Remove active state from thumbs down if it's active
-            if (thumbsDownBtn.classList.contains('active')) {
-                thumbsDownBtn.classList.remove('active');
-            }
-            // Here you would typically send feedback to your backend
-        });
-        
-        // Thumbs down button
-        const thumbsDownBtn = document.createElement('button');
-        thumbsDownBtn.classList.add('action-btn');
-        thumbsDownBtn.innerHTML = '<i class="fas fa-thumbs-down"></i>';
-        thumbsDownBtn.addEventListener('click', function() {
-            // Toggle active state for this button
-            thumbsDownBtn.classList.toggle('active');
-            // Remove active state from thumbs up if it's active
-            if (thumbsUpBtn.classList.contains('active')) {
-                thumbsUpBtn.classList.remove('active');
-            }
-            // Here you would typically send feedback to your backend
-        });
-        
-        actionsDiv.appendChild(copyBtn);
-        actionsDiv.appendChild(thumbsUpBtn);
-        actionsDiv.appendChild(thumbsDownBtn);
-        
-        messageDiv.appendChild(actionsDiv);
-    }
+        // Show feedback
+        copyBtn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+        setTimeout(() => {
+            copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copy';
+        }, 1500);
+    });
+    
+    // Audio button
+    const audioBtn = document.createElement('button');
+    audioBtn.classList.add('action-btn', 'audio-btn');
+    audioBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+    audioBtn.addEventListener('click', function() {
+        // Get the text content without HTML tags
+        const messageText = content.replace(/<[^>]*>/g, '');
+        playMessageAudio(messageText);
+    });
+    
+    // Thumbs up button
+    const thumbsUpBtn = document.createElement('button');
+    thumbsUpBtn.classList.add('action-btn');
+    thumbsUpBtn.innerHTML = '<i class="fas fa-thumbs-up"></i>';
+    thumbsUpBtn.addEventListener('click', function() {
+        // Toggle active state for this button
+        thumbsUpBtn.classList.toggle('active');
+        // Remove active state from thumbs down if it's active
+        if (thumbsDownBtn.classList.contains('active')) {
+            thumbsDownBtn.classList.remove('active');
+        }
+    });
+    
+    // Thumbs down button
+    const thumbsDownBtn = document.createElement('button');
+    thumbsDownBtn.classList.add('action-btn');
+    thumbsDownBtn.innerHTML = '<i class="fas fa-thumbs-down"></i>';
+    thumbsDownBtn.addEventListener('click', function() {
+        // Toggle active state for this button
+        thumbsDownBtn.classList.toggle('active');
+        // Remove active state from thumbs up if it's active
+        if (thumbsUpBtn.classList.contains('active')) {
+            thumbsUpBtn.classList.remove('active');
+        }
+    });
+    
+    actionsDiv.appendChild(copyBtn);
+    actionsDiv.appendChild(audioBtn);
+    actionsDiv.appendChild(thumbsUpBtn);
+    actionsDiv.appendChild(thumbsDownBtn);
+    
+    messageDiv.appendChild(actionsDiv);
+}
     
     // Assemble all parts
     contentDiv.appendChild(iconSpan);
@@ -1673,6 +1683,102 @@ function cleanupAudioStream() {
     }
 }
 
+
+// Function to handle the volume button click
+async function playMessageAudio(text) {
+    // Find the clicked button
+    const button = event.currentTarget;
+    
+    // If this button was already playing, stop the audio and exit
+    if (button.classList.contains('playing')) {
+        if (currentAudio) {
+            currentAudio.pause();
+            currentAudio = null;
+        }
+        button.classList.remove('playing');
+        button.innerHTML = '<i class="fas fa-volume-up"></i>';
+        return;
+    }
+    
+    // Stop any currently playing audio
+    if (currentAudio) {
+        currentAudio.pause();
+        currentAudio = null;
+        document.querySelectorAll('.audio-btn').forEach(btn => {
+            btn.innerHTML = '<i class="fas fa-volume-up"></i>';
+            btn.classList.remove('playing');
+        });
+    }
+    
+    // Show loading state
+    button.classList.add('playing');
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    
+    try {
+        // First detect language
+        const detectResponse = await fetch('/detect-language', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: text })
+        });
+        
+        const detectData = await detectResponse.json();
+        
+        if (detectData.error) {
+            console.error('Language detection error:', detectData.error);
+            button.classList.remove('playing');
+            button.innerHTML = '<i class="fas fa-volume-up"></i>';
+            return;
+        }
+        
+        // Get speech audio
+        const speechResponse = await fetch('/text-to-speech', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                text: text,
+                voice: detectData.voice
+            })
+        });
+        
+        const speechData = await speechResponse.json();
+        
+        if (speechData.error) {
+            console.error('Text-to-speech error:', speechData.error);
+            button.classList.remove('playing');
+            button.innerHTML = '<i class="fas fa-volume-up"></i>';
+            return;
+        }
+        
+        // Create and play audio
+        const audio = new Audio(`data:audio/mp3;base64,${speechData.audio}`);
+        currentAudio = audio;
+        
+        audio.onplay = () => {
+            button.innerHTML = '<i class="fas fa-pause"></i>';
+        };
+        
+        audio.onended = () => {
+            button.innerHTML = '<i class="fas fa-volume-up"></i>';
+            button.classList.remove('playing');
+            currentAudio = null;
+        };
+        
+        audio.onerror = () => {
+            button.innerHTML = '<i class="fas fa-volume-up"></i>';
+            button.classList.remove('playing');
+            currentAudio = null;
+        };
+        
+        // Play the audio
+        audio.play();
+        
+    } catch (error) {
+        console.error('Audio processing error:', error);
+        button.innerHTML = '<i class="fas fa-volume-up"></i>';
+        button.classList.remove('playing');
+    }
+}
 // Add an event listener to clean up when the page is unloaded
 window.addEventListener('beforeunload', cleanupAudioStream);
 
