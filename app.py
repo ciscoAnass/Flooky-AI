@@ -13,6 +13,7 @@ from helpers import log_conversation
 from video_analyzer import VideoAnalyzer
 from hr_helper import HRHelper
 from bill_processor import BillProcessor
+from contract_processor import ContractProcessor
 
 # Text to Speech (TTS) and Speech to Text (STT) services
 import edge_tts
@@ -35,12 +36,14 @@ try:
     video_analyzer = VideoAnalyzer(api_key=app.config['CLAUDE_API_KEY'])
     hr_helper = HRHelper(api_key=app.config['CLAUDE_API_KEY'])
     bill_processor = BillProcessor(api_key=app.config['CLAUDE_API_KEY'])
+    contract_processor = ContractProcessor(api_key=app.config['CLAUDE_API_KEY'])
     print("All AI services initialized successfully")
 except Exception as e:
     print(f"Error initializing AI services: {e}")
     video_analyzer = None
     hr_helper = None
     bill_processor = None
+    contract_processor = None
 
 # Initialize the Faster Whisper model
 model_size = "base"
@@ -146,6 +149,54 @@ def upload_bill():
     
     # Process the bill
     result = bill_processor.process_bill(filepath)
+    
+    # Clean up
+    try:
+        os.remove(filepath)
+        os.rmdir(temp_dir)
+    except:
+        pass
+    
+    if result['success']:
+        return jsonify({
+            'success': True,
+            'data': result['data']
+        })
+    else:
+        return jsonify({
+            'success': False,
+            'error': result['error']
+        }), 500
+
+# Legal Document Checker App
+@app.route('/app/flooky-legal-checker')
+def legal_checker_page():
+    return render_template('contract_analyzer.html')
+
+@app.route('/app/flooky-legal-checker/upload', methods=['POST'])
+def upload_contract():
+    if contract_processor is None:
+        return jsonify({'error': 'Contract processor not available'}), 500
+    
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file provided'}), 400
+    
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'error': 'No file selected'}), 400
+    
+    # Save file temporarily
+    from werkzeug.utils import secure_filename
+    filename = secure_filename(file.filename)
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S_')
+    filename = timestamp + filename
+    
+    temp_dir = tempfile.mkdtemp()
+    filepath = os.path.join(temp_dir, filename)
+    file.save(filepath)
+    
+    # Process the contract
+    result = contract_processor.process_contract(filepath)
     
     # Clean up
     try:

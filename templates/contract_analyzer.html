@@ -1,0 +1,756 @@
+{% extends "base.html" %}
+
+{% block title %}Legal Document Checker - Flooky AI{% endblock %}
+
+{% block extra_css %}
+<style>
+.contract-analyzer-container {
+    padding: var(--space-xl) 0;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.contract-header {
+    text-align: center;
+    margin-bottom: var(--space-xl);
+}
+
+.contract-header h1 {
+    font-weight: 800;
+    font-size: 2.5rem;
+    color: var(--text-primary);
+    margin-bottom: var(--space-md);
+}
+
+.contract-header p {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.upload-section {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    margin-bottom: var(--space-lg);
+    box-shadow: var(--card-shadow);
+}
+
+.upload-area {
+    border: 2px dashed var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-xl);
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+}
+
+.upload-area:hover,
+.upload-area.dragover {
+    border-color: var(--primary-color);
+    background: rgba(19, 121, 248, 0.05);
+}
+
+.upload-icon {
+    font-size: 3rem;
+    margin-bottom: var(--space-md);
+    color: var(--text-secondary);
+}
+
+.upload-text {
+    font-size: 1.2rem;
+    color: var(--text-primary);
+    margin-bottom: var(--space-md);
+    font-weight: 600;
+}
+
+.file-input {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+
+.upload-btn {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+    color: white;
+    border: none;
+    padding: var(--space-md) var(--space-xl);
+    border-radius: var(--radius-sm);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: var(--button-shadow);
+}
+
+.upload-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(19, 121, 248, 0.4);
+}
+
+.loading {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-xl);
+    text-align: center;
+    margin-bottom: var(--space-lg);
+    box-shadow: var(--card-shadow);
+}
+
+.loading .spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border-color);
+    border-radius: 50%;
+    border-top-color: var(--primary-color);
+    animation: spin 1s ease-in-out infinite;
+    margin-right: var(--space-sm);
+}
+
+.loading div {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    margin: var(--space-sm) 0;
+}
+
+.results {
+    margin-top: var(--space-lg);
+}
+
+.analysis-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--space-lg);
+    margin-bottom: var(--space-lg);
+}
+
+.analysis-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    box-shadow: var(--card-shadow);
+}
+
+.analysis-card h3 {
+    color: var(--text-primary);
+    font-weight: 700;
+    font-size: 1.2rem;
+    margin-bottom: var(--space-md);
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.analysis-content {
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.risk-meter {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    margin: var(--space-md) 0;
+}
+
+.risk-bar {
+    flex: 1;
+    height: 20px;
+    background: var(--border-color);
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+}
+
+.risk-fill {
+    height: 100%;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.risk-percentage {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--text-primary);
+}
+
+.risk-high { background: linear-gradient(90deg, #ef4444, #dc2626); }
+.risk-medium { background: linear-gradient(90deg, #f59e0b, #d97706); }
+.risk-low { background: linear-gradient(90deg, #22c55e, #16a34a); }
+
+.parties-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-md);
+    margin: var(--space-md) 0;
+}
+
+.party-box {
+    background: rgba(19, 121, 248, 0.1);
+    border: 1px solid rgba(19, 121, 248, 0.3);
+    border-radius: var(--radius-sm);
+    padding: var(--space-md);
+    text-align: center;
+}
+
+.party-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: var(--space-xs);
+}
+
+.party-name {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.terms-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.term-item {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: var(--space-md);
+    margin-bottom: var(--space-md);
+}
+
+.term-title {
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: var(--space-xs);
+}
+
+.term-explanation {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.risk-item {
+    background: rgba(239, 68, 68, 0.05);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    border-radius: var(--radius-sm);
+    padding: var(--space-md);
+    margin-bottom: var(--space-md);
+}
+
+.risk-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-sm);
+}
+
+.risk-title {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.risk-badge {
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.risk-badge.critical { background: #dc2626; color: white; }
+.risk-badge.high { background: #ea580c; color: white; }
+.risk-badge.medium { background: #ca8a04; color: white; }
+.risk-badge.low { background: #16a34a; color: white; }
+
+.missing-item {
+    background: rgba(251, 191, 36, 0.05);
+    border: 1px solid rgba(251, 191, 36, 0.2);
+    border-radius: var(--radius-sm);
+    padding: var(--space-md);
+    margin-bottom: var(--space-md);
+}
+
+.change-item {
+    background: rgba(34, 197, 94, 0.05);
+    border: 1px solid rgba(34, 197, 94, 0.2);
+    border-radius: var(--radius-sm);
+    padding: var(--space-md);
+    margin-bottom: var(--space-md);
+}
+
+.final-recommendations {
+    background: linear-gradient(135deg, rgba(19, 121, 248, 0.1), rgba(3, 218, 198, 0.1));
+    border: 1px solid var(--primary-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    margin: var(--space-lg) 0;
+}
+
+.final-recommendations h3 {
+    color: var(--primary-color);
+    margin-bottom: var(--space-md);
+}
+
+.reset-btn {
+    background: var(--border-color);
+    color: var(--text-primary);
+    border: none;
+    padding: var(--space-md) var(--space-xl);
+    border-radius: var(--radius-sm);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.reset-btn:hover {
+    background: var(--text-muted);
+    transform: translateY(-2px);
+}
+
+.error {
+    background: rgba(220, 53, 69, 0.1);
+    border: 1px solid rgba(220, 53, 69, 0.3);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    color: #ff6b7a;
+    margin-bottom: var(--space-lg);
+    text-align: center;
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-sm);
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 600;
+    margin-bottom: var(--space-lg);
+    transition: all 0.3s ease;
+}
+
+.back-link:hover {
+    color: var(--primary-hover);
+    text-decoration: none;
+    transform: translateX(-3px);
+}
+
+@media (max-width: 768px) {
+    .contract-analyzer-container {
+        padding: var(--space-md) 0;
+    }
+    
+    .contract-header h1 {
+        font-size: 2rem;
+    }
+    
+    .upload-section {
+        padding: var(--space-md);
+    }
+    
+    .upload-area {
+        padding: var(--space-lg);
+    }
+    
+    .analysis-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .parties-info {
+        grid-template-columns: 1fr;
+    }
+    
+    .risk-meter {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--space-sm);
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="contract-analyzer-container">
+    <a href="/tools" class="back-link">
+        <i class="fas fa-arrow-left"></i>
+        Back to Tools
+    </a>
+
+    <div class="contract-header">
+        <h1>⚖️ Flooky Legal Document Checker</h1>
+        <p>Upload your legal documents and get comprehensive AI-powered analysis including risk assessment, simplified explanations, and professional recommendations</p>
+    </div>
+
+    <div class="upload-section" id="uploadSection">
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">📋</div>
+            <div class="upload-text">
+                Drag and drop your legal document here or click to browse
+            </div>
+            <div style="margin-bottom: 15px; color: var(--text-muted); font-size: 0.9em;">
+                Supports PDF, DOC, DOCX, TXT files
+            </div>
+            <input type="file" id="fileInput" class="file-input" accept=".pdf,.doc,.docx,.txt">
+            <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                Choose File
+            </button>
+        </div>
+    </div>
+
+    <div class="loading" id="loadingSection" style="display: none;">
+        <div class="spinner"></div>
+        <div>Analyzing your legal document with AI...</div>
+        <div style="margin-top: 10px; font-size: 0.9em; color: var(--text-muted);">
+            This may take a few moments for comprehensive analysis
+        </div>
+    </div>
+
+    <div class="results" id="resultsSection" style="display: none;">
+        <!-- Contract Overview -->
+        <div class="analysis-grid">
+            <div class="analysis-card">
+                <h3><i class="fas fa-file-contract"></i> Contract Overview</h3>
+                <div class="analysis-content">
+                    <p><strong>Title:</strong> <span id="contractTitle"></span></p>
+                    <p><strong>Duration:</strong> <span id="contractDuration"></span></p>
+                    <div class="parties-info">
+                        <div class="party-box">
+                            <div class="party-label">Party 1</div>
+                            <div class="party-name" id="party1"></div>
+                        </div>
+                        <div class="party-box">
+                            <div class="party-label">Party 2</div>
+                            <div class="party-name" id="party2"></div>
+                        </div>
+                    </div>
+                    <p><strong>Relationship:</strong> <span id="relationship"></span></p>
+                </div>
+            </div>
+
+            <div class="analysis-card">
+                <h3><i class="fas fa-shield-alt"></i> Risk Assessment</h3>
+                <div class="analysis-content">
+                    <div class="risk-meter">
+                        <div class="risk-bar">
+                            <div class="risk-fill" id="riskFill"></div>
+                        </div>
+                        <div class="risk-percentage" id="riskPercentage">0%</div>
+                    </div>
+                    <p><strong>Risk Level:</strong> <span id="riskLevel"></span></p>
+                    <p><strong>Scam Likelihood:</strong> <span id="scamLikelihood"></span></p>
+                    <p id="riskExplanation"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contract Details -->
+        <div class="analysis-card">
+            <h3><i class="fas fa-info-circle"></i> Contract Details</h3>
+            <div class="analysis-content" id="contractDetails"></div>
+        </div>
+
+        <!-- Contract Explanation -->
+        <div class="analysis-card">
+            <h3><i class="fas fa-book-open"></i> Contract Explanation</h3>
+            <div class="analysis-content" id="contractExplanation"></div>
+        </div>
+
+        <!-- Legal Terms Simplified -->
+        <div class="analysis-card">
+            <h3><i class="fas fa-language"></i> Legal Terms Simplified</h3>
+            <div class="analysis-content">
+                <ul class="terms-list" id="legalTerms"></ul>
+            </div>
+        </div>
+
+        <!-- Risky Parts -->
+        <div class="analysis-card">
+            <h3><i class="fas fa-exclamation-triangle"></i> Risky Parts</h3>
+            <div class="analysis-content" id="riskyParts"></div>
+        </div>
+
+        <!-- Missing Clauses -->
+        <div class="analysis-card">
+            <h3><i class="fas fa-plus-circle"></i> Missing Clauses</h3>
+            <div class="analysis-content" id="missingClauses"></div>
+        </div>
+
+        <!-- Recommended Changes -->
+        <div class="analysis-card">
+            <h3><i class="fas fa-edit"></i> Recommended Changes</h3>
+            <div class="analysis-content" id="recommendedChanges"></div>
+        </div>
+
+        <!-- Final Recommendations -->
+        <div class="final-recommendations">
+            <h3><i class="fas fa-gavel"></i> Final Recommendations</h3>
+            <div id="finalRecommendations"></div>
+        </div>
+
+        <div style="text-align: center;">
+            <button class="reset-btn" onclick="resetApp()">
+                Analyze Another Document
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+// File upload handling
+const fileInput = document.getElementById('fileInput');
+const uploadArea = document.getElementById('uploadArea');
+const uploadSection = document.getElementById('uploadSection');
+const loadingSection = document.getElementById('loadingSection');
+const resultsSection = document.getElementById('resultsSection');
+
+// Drag and drop functionality
+uploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadArea.classList.add('dragover');
+});
+
+uploadArea.addEventListener('dragleave', () => {
+    uploadArea.classList.remove('dragover');
+});
+
+uploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadArea.classList.remove('dragover');
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+        handleFile(files[0]);
+    }
+});
+
+uploadArea.addEventListener('click', () => {
+    fileInput.click();
+});
+
+fileInput.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) {
+        handleFile(e.target.files[0]);
+    }
+});
+
+function handleFile(file) {
+    // Validate file
+    const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain'];
+    if (!allowedTypes.includes(file.type)) {
+        showError('Please upload a PDF, DOC, DOCX, or TXT file.');
+        return;
+    }
+
+    if (file.size > 16 * 1024 * 1024) {
+        showError('File size must be less than 16MB.');
+        return;
+    }
+
+    uploadFile(file);
+}
+
+function uploadFile(file) {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    // Show loading
+    uploadSection.style.display = 'none';
+    loadingSection.style.display = 'block';
+    resultsSection.style.display = 'none';
+
+    fetch('/app/flooky-legal-checker/upload', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        loadingSection.style.display = 'none';
+        
+        if (data.success) {
+            displayResults(data.data);
+        } else {
+            showError(data.error || 'An error occurred while processing your document.');
+        }
+    })
+    .catch(error => {
+        loadingSection.style.display = 'none';
+        showError('Network error: ' + error.message);
+    });
+}
+
+function displayResults(data) {
+    // Contract Overview
+    document.getElementById('contractTitle').textContent = data.contract_title || 'Unknown Contract';
+    document.getElementById('contractDuration').textContent = data.duration || 'Not specified';
+    document.getElementById('party1').textContent = data.parties?.party1 || 'Unknown';
+    document.getElementById('party2').textContent = data.parties?.party2 || 'Unknown';
+    document.getElementById('relationship').textContent = data.parties?.relationship || 'Not specified';
+
+    // Risk Assessment
+    const safetyPercentage = data.risk_assessment?.safety_percentage || 50;
+    const riskFill = document.getElementById('riskFill');
+    const riskPercentage = document.getElementById('riskPercentage');
+    
+    riskPercentage.textContent = safetyPercentage + '%';
+    riskFill.style.width = safetyPercentage + '%';
+    
+    if (safetyPercentage >= 80) {
+        riskFill.className = 'risk-fill risk-low';
+    } else if (safetyPercentage >= 60) {
+        riskFill.className = 'risk-fill risk-medium';
+    } else {
+        riskFill.className = 'risk-fill risk-high';
+    }
+
+    document.getElementById('riskLevel').textContent = data.risk_assessment?.risk_level || 'Unknown';
+    document.getElementById('scamLikelihood').textContent = data.risk_assessment?.scam_likelihood || 'Unknown';
+    document.getElementById('riskExplanation').textContent = data.risk_assessment?.explanation || '';
+
+    // Contract Details and Explanation
+    document.getElementById('contractDetails').textContent = data.contract_details || 'No details available';
+    document.getElementById('contractExplanation').textContent = data.contract_explanation || 'No explanation available';
+
+    // Legal Terms
+    const legalTerms = document.getElementById('legalTerms');
+    legalTerms.innerHTML = '';
+    if (data.legal_terms_simplified && data.legal_terms_simplified.length > 0) {
+        data.legal_terms_simplified.forEach(term => {
+            const li = document.createElement('li');
+            li.className = 'term-item';
+            li.innerHTML = `
+                <div class="term-title">${escapeHtml(term.term || 'Unknown Term')}</div>
+                <div class="term-explanation">${escapeHtml(term.simple_explanation || 'No explanation')}</div>
+            `;
+            legalTerms.appendChild(li);
+        });
+    } else {
+        legalTerms.innerHTML = '<li class="term-item">No legal terms to simplify found.</li>';
+    }
+
+    // Risky Parts
+    const riskyParts = document.getElementById('riskyParts');
+    riskyParts.innerHTML = '';
+    if (data.risky_parts && data.risky_parts.length > 0) {
+        data.risky_parts.forEach(risk => {
+            const div = document.createElement('div');
+            div.className = 'risk-item';
+            div.innerHTML = `
+                <div class="risk-header">
+                    <div class="risk-title">${escapeHtml(risk.issue || 'Unknown Risk')}</div>
+                    <div class="risk-badge ${(risk.risk_level || 'medium').toLowerCase()}">${risk.risk_level || 'Medium'}</div>
+                </div>
+                <p>${escapeHtml(risk.explanation || 'No explanation')}</p>
+                ${risk.location ? `<p><strong>Location:</strong> ${escapeHtml(risk.location)}</p>` : ''}
+            `;
+            riskyParts.appendChild(div);
+        });
+    } else {
+        riskyParts.innerHTML = '<div class="risk-item">No significant risks identified.</div>';
+    }
+
+    // Missing Clauses
+    const missingClauses = document.getElementById('missingClauses');
+    missingClauses.innerHTML = '';
+    if (data.missing_clauses && data.missing_clauses.length > 0) {
+        data.missing_clauses.forEach(clause => {
+            const div = document.createElement('div');
+            div.className = 'missing-item';
+            div.innerHTML = `
+                <div class="risk-header">
+                    <div class="risk-title">${escapeHtml(clause.clause || 'Unknown Clause')}</div>
+                    <div class="risk-badge ${(clause.importance || 'medium').toLowerCase()}">${clause.importance || 'Medium'}</div>
+                </div>
+                <p>${escapeHtml(clause.explanation || 'No explanation')}</p>
+            `;
+            missingClauses.appendChild(div);
+        });
+    } else {
+        missingClauses.innerHTML = '<div class="missing-item">No critical missing clauses identified.</div>';
+    }
+
+    // Recommended Changes
+    const recommendedChanges = document.getElementById('recommendedChanges');
+    recommendedChanges.innerHTML = '';
+    if (data.recommended_changes && data.recommended_changes.length > 0) {
+        data.recommended_changes.forEach(change => {
+            const div = document.createElement('div');
+            div.className = 'change-item';
+            div.innerHTML = `
+                <div class="risk-header">
+                    <div class="risk-title">${escapeHtml(change.change || 'Unknown Change')}</div>
+                    <div class="risk-badge ${(change.priority || 'medium').toLowerCase()}">${change.priority || 'Medium'}</div>
+                </div>
+                <p>${escapeHtml(change.reason || 'No reason provided')}</p>
+            `;
+            recommendedChanges.appendChild(div);
+        });
+    } else {
+        recommendedChanges.innerHTML = '<div class="change-item">No specific changes recommended at this time.</div>';
+    }
+
+    // Final Recommendations
+    document.getElementById('finalRecommendations').textContent = data.final_recommendations || 'No final recommendations available';
+
+    // Show results
+    resultsSection.style.display = 'block';
+}
+
+function escapeHtml(unsafe) {
+    return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+function showError(message) {
+    uploadSection.style.display = 'block';
+    loadingSection.style.display = 'none';
+    resultsSection.style.display = 'none';
+    
+    // Remove existing error messages
+    const existingError = document.querySelector('.error');
+    if (existingError) {
+        existingError.remove();
+    }
+    
+    // Create error message
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'error';
+    errorDiv.textContent = message;
+    
+    // Insert error before upload section
+    uploadSection.parentNode.insertBefore(errorDiv, uploadSection);
+    
+    // Auto-remove error after 5 seconds
+    setTimeout(() => {
+        if (errorDiv.parentNode) {
+            errorDiv.remove();
+        }
+    }, 5000);
+}
+
+function resetApp() {
+    uploadSection.style.display = 'block';
+    loadingSection.style.display = 'none';
+    resultsSection.style.display = 'none';
+    
+    // Reset file input
+    fileInput.value = '';
+    
+    // Remove any error messages
+    const errorMessages = document.querySelectorAll('.error');
+    errorMessages.forEach(error => error.remove());
+}
+</script>
+{% endblock %}
