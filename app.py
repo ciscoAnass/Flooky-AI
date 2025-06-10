@@ -14,6 +14,7 @@ from video_analyzer import VideoAnalyzer
 from hr_helper import HRHelper
 from bill_processor import BillProcessor
 from contract_processor import ContractProcessor
+from financial_processor import FinancialProcessor
 
 # Text to Speech (TTS) and Speech to Text (STT) services
 import edge_tts
@@ -37,6 +38,7 @@ try:
     hr_helper = HRHelper(api_key=app.config['CLAUDE_API_KEY'])
     bill_processor = BillProcessor(api_key=app.config['CLAUDE_API_KEY'])
     contract_processor = ContractProcessor(api_key=app.config['CLAUDE_API_KEY'])
+    financial_processor = FinancialProcessor(api_key=app.config['CLAUDE_API_KEY'])
     print("All AI services initialized successfully")
 except Exception as e:
     print(f"Error initializing AI services: {e}")
@@ -44,6 +46,7 @@ except Exception as e:
     hr_helper = None
     bill_processor = None
     contract_processor = None
+    financial_processor = None
 
 # Initialize the Faster Whisper model
 model_size = "base"
@@ -197,6 +200,62 @@ def upload_contract():
     
     # Process the contract
     result = contract_processor.process_contract(filepath)
+    
+    # Clean up
+    try:
+        os.remove(filepath)
+        os.rmdir(temp_dir)
+    except:
+        pass
+    
+    if result['success']:
+        return jsonify({
+            'success': True,
+            'data': result['data']
+        })
+    else:
+        return jsonify({
+            'success': False,
+            'error': result['error']
+        }), 500
+
+# Financial Advisor App
+@app.route('/app/flooky-financial-advisor')
+def financial_advisor_page():
+    return render_template('financial_advisor.html')
+
+@app.route('/app/flooky-financial-advisor/analyze', methods=['POST'])
+def analyze_finances():
+    if financial_processor is None:
+        return jsonify({'error': 'Financial processor not available'}), 500
+    
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file provided'}), 400
+    
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'error': 'No file selected'}), 400
+    
+    # Get form data
+    financial_goal = request.form.get('financial_goal', '')
+    goal_amount = request.form.get('goal_amount', '')
+    goal_timeframe = request.form.get('goal_timeframe', '')
+    
+    if not financial_goal:
+        return jsonify({'error': 'Financial goal is required'}), 400
+    
+    # Save file temporarily
+    from werkzeug.utils import secure_filename
+    filename = secure_filename(file.filename)
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S_')
+    filename = timestamp + filename
+    
+    temp_dir = tempfile.mkdtemp()
+    filepath = os.path.join(temp_dir, filename)
+    file.save(filepath)
+    
+    # Process the financial data
+    result = financial_processor.process_financial_data(filepath, financial_goal, goal_amount, goal_timeframe)
     
     # Clean up
     try:

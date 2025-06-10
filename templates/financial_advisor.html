@@ -1,0 +1,1147 @@
+{% extends "base.html" %}
+
+{% block title %}Financial Advisor - Flooky AI{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<style>
+.financial-container {
+    padding: var(--space-xl) 0;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.financial-header {
+    text-align: center;
+    margin-bottom: var(--space-xl);
+}
+
+.financial-header h1 {
+    font-weight: 800;
+    font-size: 2.5rem;
+    color: var(--text-primary);
+    margin-bottom: var(--space-md);
+}
+
+.financial-header p {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.upload-section {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    margin-bottom: var(--space-lg);
+    box-shadow: var(--card-shadow);
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--space-md);
+    margin-bottom: var(--space-lg);
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    color: var(--text-primary);
+    font-weight: 600;
+    margin-bottom: var(--space-sm);
+    font-size: 1rem;
+}
+
+.form-group select,
+.form-group input {
+    padding: var(--space-md);
+    background: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-group select:focus,
+.form-group input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(19, 121, 248, 0.1);
+}
+
+.upload-area {
+    border: 2px dashed var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-xl);
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    margin-bottom: var(--space-lg);
+}
+
+.upload-area:hover,
+.upload-area.dragover {
+    border-color: var(--primary-color);
+    background: rgba(19, 121, 248, 0.05);
+}
+
+.upload-icon {
+    font-size: 3rem;
+    margin-bottom: var(--space-md);
+    color: var(--text-secondary);
+}
+
+.upload-text {
+    font-size: 1.2rem;
+    color: var(--text-primary);
+    margin-bottom: var(--space-md);
+    font-weight: 600;
+}
+
+.file-input {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+
+.analyze-btn {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+    color: white;
+    border: none;
+    padding: var(--space-md) var(--space-xl);
+    border-radius: var(--radius-sm);
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: var(--button-shadow);
+    width: 100%;
+}
+
+.analyze-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(19, 121, 248, 0.4);
+}
+
+.analyze-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.loading {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-xl);
+    text-align: center;
+    margin-bottom: var(--space-lg);
+    box-shadow: var(--card-shadow);
+}
+
+.loading .spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border-color);
+    border-radius: 50%;
+    border-top-color: var(--primary-color);
+    animation: spin 1s ease-in-out infinite;
+    margin-right: var(--space-sm);
+}
+
+.loading div {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    margin: var(--space-sm) 0;
+}
+
+.results {
+    margin-top: var(--space-lg);
+}
+
+.overview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-md);
+    margin-bottom: var(--space-lg);
+}
+
+.metric-card {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+    color: white;
+    padding: var(--space-lg);
+    border-radius: var(--radius-md);
+    text-align: center;
+    box-shadow: var(--card-shadow);
+}
+
+.metric-value {
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: var(--space-xs);
+}
+
+.metric-label {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.analysis-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: var(--space-lg);
+    margin-bottom: var(--space-lg);
+}
+
+.analysis-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    box-shadow: var(--card-shadow);
+}
+
+.analysis-card h3 {
+    color: var(--text-primary);
+    font-weight: 700;
+    font-size: 1.3rem;
+    margin-bottom: var(--space-md);
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.chart-container {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    margin-bottom: var(--space-lg);
+    box-shadow: var(--card-shadow);
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.chart-wrapper {
+    position: relative;
+    height: 350px;
+    width: 100%;
+}
+
+.spending-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-sm) var(--space-md);
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-sm);
+}
+
+.spending-category {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.spending-amount {
+    color: var(--primary-color);
+    font-weight: 700;
+}
+
+.spending-percentage {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.habit-item {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: var(--space-md);
+    margin-bottom: var(--space-sm);
+}
+
+.good-habit {
+    border-left: 4px solid #22c55e;
+}
+
+.bad-habit {
+    border-left: 4px solid #ef4444;
+}
+
+.recommendation-item {
+    background: rgba(19, 121, 248, 0.05);
+    border: 1px solid rgba(19, 121, 248, 0.2);
+    border-radius: var(--radius-sm);
+    padding: var(--space-md);
+    margin-bottom: var(--space-md);
+}
+
+.recommendation-header {
+    display: flex;
+    justify-content: between;
+    align-items: flex-start;
+    gap: var(--space-md);
+    margin-bottom: var(--space-sm);
+}
+
+.recommendation-action {
+    font-weight: 600;
+    color: var(--text-primary);
+    flex: 1;
+}
+
+.impact-badge {
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.impact-high { background: #dc2626; color: white; }
+.impact-medium { background: #ca8a04; color: white; }
+.impact-low { background: #16a34a; color: white; }
+
+.goal-progress {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    margin-bottom: var(--space-lg);
+    box-shadow: var(--card-shadow);
+}
+
+.progress-bar {
+    width: 100%;
+    height: 20px;
+    background: var(--border-color);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: var(--space-md) 0;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+    border-radius: 10px;
+    transition: width 0.3s ease;
+}
+
+.insights-section {
+    background: linear-gradient(135deg, rgba(19, 121, 248, 0.1), rgba(3, 218, 198, 0.1));
+    border: 1px solid var(--primary-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    margin: var(--space-lg) 0;
+}
+
+.insights-section h3 {
+    color: var(--primary-color);
+    margin-bottom: var(--space-md);
+}
+
+.action-timeline {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--space-md);
+}
+
+.timeline-item {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: var(--space-md);
+}
+
+.timeline-title {
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: var(--space-sm);
+}
+
+.reset-btn {
+    background: var(--border-color);
+    color: var(--text-primary);
+    border: none;
+    padding: var(--space-md) var(--space-xl);
+    border-radius: var(--radius-sm);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.reset-btn:hover {
+    background: var(--text-muted);
+    transform: translateY(-2px);
+}
+
+.error {
+    background: rgba(220, 53, 69, 0.1);
+    border: 1px solid rgba(220, 53, 69, 0.3);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    color: #ff6b7a;
+    margin-bottom: var(--space-lg);
+    text-align: center;
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-sm);
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 600;
+    margin-bottom: var(--space-lg);
+    transition: all 0.3s ease;
+}
+
+.back-link:hover {
+    color: var(--primary-hover);
+    text-decoration: none;
+    transform: translateX(-3px);
+}
+
+@media (max-width: 768px) {
+    .financial-container {
+        padding: var(--space-md) 0;
+    }
+    
+    .financial-header h1 {
+        font-size: 2rem;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .overview-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+    
+    .analysis-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .action-timeline {
+        grid-template-columns: 1fr;
+    }
+    
+    .chart-wrapper {
+        height: 300px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="financial-container">
+    <a href="/tools" class="back-link">
+        <i class="fas fa-arrow-left"></i>
+        Back to Tools
+    </a>
+
+    <div class="financial-header">
+        <h1>💰 Flooky Financial Advisor</h1>
+        <p>Upload your bank statement and get personalized financial advice with AI-powered analysis, spending insights, and custom goal-based planning</p>
+    </div>
+
+    <div class="upload-section" id="uploadSection">
+        <div class="form-row">
+            <div class="form-group">
+                <label for="financialGoal">What's your financial goal?</label>
+                <select id="financialGoal" required>
+                    <option value="">Select your goal</option>
+                    <option value="Save money">Save money</option>
+                    <option value="Buy iPhone">Buy iPhone</option>
+                    <option value="Buy apartment">Buy apartment</option>
+                    <option value="Buy car">Buy car</option>
+                    <option value="Emergency fund">Build emergency fund</option>
+                    <option value="Grow wealth">Grow wealth</option>
+                    <option value="Pay off debt">Pay off debt</option>
+                    <option value="Vacation">Save for vacation</option>
+                    <option value="Retirement">Retirement planning</option>
+                    <option value="Investment">Start investing</option>
+                    <option value="Custom">Custom goal</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="goalAmount">Target amount (€)</label>
+                <input type="number" id="goalAmount" placeholder="e.g., 120000" min="0">
+            </div>
+            <div class="form-group">
+                <label for="goalTimeframe">Target timeframe</label>
+                <div style="display: flex; gap: var(--space-sm); align-items: center;">
+                    <input type="number" id="timeframeNumber" placeholder="21" min="1" style="flex: 0 0 80px;">
+                    <select id="timeframeUnit" style="flex: 1;">
+                        <option value="days">Days</option>
+                        <option value="weeks">Weeks</option>
+                        <option value="months" selected>Months</option>
+                        <option value="years">Years</option>
+                    </select>
+                </div>
+                <div style="margin-top: var(--space-xs); font-size: 0.8rem; color: var(--text-muted);">
+                    Examples: 21 days, 8 months, 2 years
+                </div>
+            </div>
+        </div>
+
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">📊</div>
+            <div class="upload-text">
+                Drag and drop your bank statement here or click to browse
+            </div>
+            <div style="margin-bottom: 15px; color: var(--text-muted); font-size: 0.9em;">
+                Supports PDF, CSV, TXT files (last 1-6 months recommended)
+            </div>
+            <input type="file" id="fileInput" class="file-input" accept=".pdf,.csv,.txt">
+            <button class="upload-btn" onclick="document.getElementById('fileInput').click()" style="max-width: 200px; margin: 0 auto; display: block;">
+                Choose File
+            </button>
+        </div>
+
+        <button class="analyze-btn" id="analyzeBtn" onclick="analyzeFinances()" disabled>
+            <i class="fas fa-chart-line"></i> Analyze My Finances
+        </button>
+    </div>
+
+    <div class="loading" id="loadingSection" style="display: none;">
+        <div class="spinner"></div>
+        <div>Analyzing your financial data with AI...</div>
+        <div style="margin-top: 10px; font-size: 0.9em; color: var(--text-muted);">
+            Creating personalized recommendations and goal plan
+        </div>
+    </div>
+
+    <div class="results" id="resultsSection" style="display: none;">
+        <!-- Financial Overview -->
+        <div class="overview-grid">
+            <div class="metric-card">
+                <div class="metric-value" id="totalIncome">€0</div>
+                <div class="metric-label">Total Income</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="totalExpenses">€0</div>
+                <div class="metric-label">Total Expenses</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="netSavings">€0</div>
+                <div class="metric-label">Net Savings</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="savingsRate">0%</div>
+                <div class="metric-label">Savings Rate</div>
+            </div>
+        </div>
+
+        <!-- Goal Progress -->
+        <div class="goal-progress">
+            <h3><i class="fas fa-bullseye"></i> Goal Progress</h3>
+            <div style="margin: var(--space-md) 0;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: var(--space-sm);">
+                    <span id="goalTitle">Your Goal</span>
+                    <span id="goalProgress">0%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                </div>
+                <div style="display: flex; justify-content: space-between; color: var(--text-secondary); font-size: 0.9rem;">
+                    <span id="currentAmount">Current: €0</span>
+                    <span id="targetAmount">Target: €0</span>
+                </div>
+            </div>
+            <div id="goalFeasibility" style="color: var(--text-secondary); margin-top: var(--space-sm);"></div>
+        </div>
+
+        <!-- Spending Breakdown Chart -->
+        <div class="chart-container">
+            <h3><i class="fas fa-pie-chart"></i> Spending Breakdown</h3>
+            <div class="chart-wrapper">
+                <canvas id="spendingChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Analysis Cards -->
+        <div class="analysis-grid">
+            <!-- Spending Categories -->
+            <div class="analysis-card">
+                <h3><i class="fas fa-list"></i> Spending Categories</h3>
+                <div id="spendingBreakdown"></div>
+            </div>
+
+            <!-- Financial Habits -->
+            <div class="analysis-card">
+                <h3><i class="fas fa-heartbeat"></i> Financial Habits</h3>
+                <div id="financialHabits"></div>
+            </div>
+
+            <!-- Income Sources -->
+            <div class="analysis-card">
+                <h3><i class="fas fa-money-bill-wave"></i> Income Sources</h3>
+                <div id="incomeSources"></div>
+            </div>
+
+            <!-- Risk Assessment -->
+            <div class="analysis-card">
+                <h3><i class="fas fa-shield-alt"></i> Risk Assessment</h3>
+                <div id="riskAssessment"></div>
+            </div>
+        </div>
+
+        <!-- Recommendations -->
+        <div class="analysis-card">
+            <h3><i class="fas fa-lightbulb"></i> Recommendations</h3>
+            <div id="recommendations"></div>
+        </div>
+
+        <!-- Action Plan -->
+        <div class="analysis-card">
+            <h3><i class="fas fa-tasks"></i> Action Plan</h3>
+            <div class="action-timeline" id="actionPlan"></div>
+        </div>
+
+        <!-- Income Optimization -->
+        <div class="analysis-card">
+            <h3><i class="fas fa-arrow-up"></i> Income Optimization</h3>
+            <div id="incomeOptimization"></div>
+        </div>
+
+        <!-- Personalized Insights -->
+        <div class="insights-section">
+            <h3><i class="fas fa-brain"></i> Personalized Insights</h3>
+            <div id="personalizedInsights"></div>
+        </div>
+
+        <div style="text-align: center;">
+            <button class="reset-btn" onclick="resetApp()">
+                Analyze Another Statement
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+let spendingChart = null;
+let currentFile = null;
+
+// File upload handling
+const fileInput = document.getElementById('fileInput');
+const uploadArea = document.getElementById('uploadArea');
+const uploadSection = document.getElementById('uploadSection');
+const loadingSection = document.getElementById('loadingSection');
+const resultsSection = document.getElementById('resultsSection');
+const analyzeBtn = document.getElementById('analyzeBtn');
+
+// Form elements
+const financialGoal = document.getElementById('financialGoal');
+const goalAmount = document.getElementById('goalAmount');
+const timeframeNumber = document.getElementById('timeframeNumber');
+const timeframeUnit = document.getElementById('timeframeUnit');
+
+// Enable analyze button when all required fields are filled
+function checkFormCompletion() {
+    const hasFile = currentFile !== null;
+    const hasGoal = financialGoal.value !== '';
+    
+    analyzeBtn.disabled = !(hasFile && hasGoal);
+}
+
+financialGoal.addEventListener('change', checkFormCompletion);
+goalAmount.addEventListener('input', checkFormCompletion);
+timeframeNumber.addEventListener('input', checkFormCompletion);
+timeframeUnit.addEventListener('change', checkFormCompletion);
+
+// Drag and drop functionality
+uploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadArea.classList.add('dragover');
+});
+
+uploadArea.addEventListener('dragleave', () => {
+    uploadArea.classList.remove('dragover');
+});
+
+uploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadArea.classList.remove('dragover');
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+        handleFile(files[0]);
+    }
+});
+
+uploadArea.addEventListener('click', () => {
+    fileInput.click();
+});
+
+fileInput.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) {
+        handleFile(e.target.files[0]);
+    }
+});
+
+function handleFile(file) {
+    // Validate file
+    const allowedTypes = ['application/pdf', 'text/csv', 'text/plain'];
+    if (!allowedTypes.includes(file.type)) {
+        showError('Please upload a PDF, CSV, or TXT file.');
+        return;
+    }
+
+    if (file.size > 16 * 1024 * 1024) {
+        showError('File size must be less than 16MB.');
+        return;
+    }
+
+    currentFile = file;
+    document.querySelector('.upload-text').textContent = `Selected: ${file.name}`;
+    checkFormCompletion();
+}
+
+function analyzeFinances() {
+    if (!currentFile || !financialGoal.value) {
+        showError('Please select a file and set your financial goal.');
+        return;
+    }
+
+    // Build custom timeframe
+    let goalTimeframe = '';
+    if (timeframeNumber.value && timeframeUnit.value) {
+        goalTimeframe = `${timeframeNumber.value} ${timeframeUnit.value}`;
+    }
+
+    const formData = new FormData();
+    formData.append('file', currentFile);
+    formData.append('financial_goal', financialGoal.value);
+    formData.append('goal_amount', goalAmount.value || '');
+    formData.append('goal_timeframe', goalTimeframe);
+
+    // Show loading
+    uploadSection.style.display = 'none';
+    loadingSection.style.display = 'block';
+    resultsSection.style.display = 'none';
+
+    fetch('/app/flooky-financial-advisor/analyze', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        loadingSection.style.display = 'none';
+        
+        if (data.success) {
+            displayResults(data.data);
+        } else {
+            showError(data.error || 'An error occurred while analyzing your financial data.');
+        }
+    })
+    .catch(error => {
+        loadingSection.style.display = 'none';
+        showError('Network error: ' + error.message);
+    });
+}
+
+function displayResults(data) {
+    // Financial Overview
+    const overview = data.financial_overview || {};
+    document.getElementById('totalIncome').textContent = formatCurrency(overview.total_income || 0);
+    document.getElementById('totalExpenses').textContent = formatCurrency(overview.total_expenses || 0);
+    document.getElementById('netSavings').textContent = formatCurrency(overview.net_savings || 0);
+    
+    const savingsRate = overview.total_income > 0 ? 
+        ((overview.net_savings / overview.total_income) * 100).toFixed(1) : 0;
+    document.getElementById('savingsRate').textContent = savingsRate + '%';
+
+    // Goal Progress
+    const goalAnalysis = data.goal_analysis || {};
+    document.getElementById('goalTitle').textContent = goalAnalysis.goal || 'Your Goal';
+    document.getElementById('targetAmount').textContent = `Target: ${formatCurrency(parseFloat(goalAnalysis.target_amount) || 0)}`;
+    document.getElementById('currentAmount').textContent = `Current: ${formatCurrency(overview.net_savings || 0)}`;
+    
+    const progressPercentage = goalAnalysis.target_amount > 0 ? 
+        Math.min(100, ((overview.net_savings || 0) / parseFloat(goalAnalysis.target_amount)) * 100) : 0;
+    document.getElementById('goalProgress').textContent = progressPercentage.toFixed(1) + '%';
+    document.getElementById('progressFill').style.width = progressPercentage + '%';
+    document.getElementById('goalFeasibility').textContent = 
+        `Feasibility: ${goalAnalysis.feasibility || 'Unknown'} | Time to reach: ${goalAnalysis.time_to_reach_goal || 'Unknown'}`;
+
+    // Spending Breakdown
+    displaySpendingBreakdown(data.spending_breakdown || []);
+    createSpendingChart(data.spending_breakdown || []);
+
+    // Financial Habits
+    displayFinancialHabits(data.financial_habits || {});
+
+    // Income Sources
+    displayIncomeSources(data.income_sources || []);
+
+    // Risk Assessment
+    displayRiskAssessment(data.risk_assessment || {});
+
+    // Recommendations
+    displayRecommendations(data.recommendations || {});
+
+    // Action Plan
+    displayActionPlan(data.action_plan || {});
+
+    // Income Optimization
+    displayIncomeOptimization(data.income_optimization || []);
+
+    // Personalized Insights
+    document.getElementById('personalizedInsights').textContent = 
+        data.personalized_insights || 'No specific insights available.';
+
+    // Show results
+    resultsSection.style.display = 'block';
+}
+
+function displaySpendingBreakdown(spending) {
+    const container = document.getElementById('spendingBreakdown');
+    container.innerHTML = '';
+    
+    if (spending.length === 0) {
+        container.innerHTML = '<p style="color: var(--text-muted);">No spending data available.</p>';
+        return;
+    }
+
+    spending.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'spending-item';
+        div.innerHTML = `
+            <div>
+                <div class="spending-category">${item.category || 'Unknown'}</div>
+                <div class="spending-percentage">${(item.percentage || 0).toFixed(1)}%</div>
+            </div>
+            <div class="spending-amount">${formatCurrency(item.amount || 0)}</div>
+        `;
+        container.appendChild(div);
+    });
+}
+
+function createSpendingChart(spending) {
+    const ctx = document.getElementById('spendingChart').getContext('2d');
+    
+    // Destroy existing chart
+    if (spendingChart) {
+        spendingChart.destroy();
+    }
+
+    if (spending.length === 0) {
+        ctx.fillStyle = '#ccc';
+        ctx.font = '16px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('No spending data to display', ctx.canvas.width / 2, ctx.canvas.height / 2);
+        return;
+    }
+
+    const categories = spending.map(item => item.category || 'Unknown');
+    const amounts = spending.map(item => item.amount || 0);
+
+    const colors = [
+        '#4facfe', '#00f2fe', '#43e97b', '#38f9d7',
+        '#667eea', '#764ba2', '#f093fb', '#f5576c',
+        '#4ecdc4', '#44a08d', '#ffecd2', '#fcb69f',
+        '#a8edea', '#fed6e3', '#ffeaa7', '#fab1a0'
+    ];
+
+    spendingChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: categories,
+            datasets: [{
+                data: amounts,
+                backgroundColor: colors.slice(0, categories.length),
+                borderWidth: 0,
+                hoverOffset: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 15,
+                        usePointStyle: true,
+                        font: { size: 11 },
+                        color: '#e0e0e0'
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = formatCurrency(context.parsed);
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((context.parsed / total) * 100).toFixed(1);
+                            return `${label}: ${value} (${percentage}%)`;
+                        }
+                    }
+                }
+            },
+            cutout: '60%'
+        }
+    });
+}
+
+function displayFinancialHabits(habits) {
+    const container = document.getElementById('financialHabits');
+    container.innerHTML = '';
+
+    // Good habits
+    if (habits.good_habits && habits.good_habits.length > 0) {
+        const goodTitle = document.createElement('h4');
+        goodTitle.textContent = '✅ Good Habits';
+        goodTitle.style.color = '#22c55e';
+        goodTitle.style.marginBottom = 'var(--space-sm)';
+        container.appendChild(goodTitle);
+
+        habits.good_habits.forEach(habit => {
+            const div = document.createElement('div');
+            div.className = 'habit-item good-habit';
+            div.textContent = habit;
+            container.appendChild(div);
+        });
+    }
+
+    // Bad habits
+    if (habits.bad_habits && habits.bad_habits.length > 0) {
+        const badTitle = document.createElement('h4');
+        badTitle.textContent = '❌ Bad Habits';
+        badTitle.style.color = '#ef4444';
+        badTitle.style.margin = 'var(--space-md) 0 var(--space-sm) 0';
+        container.appendChild(badTitle);
+
+        habits.bad_habits.forEach(habit => {
+            const div = document.createElement('div');
+            div.className = 'habit-item bad-habit';
+            div.textContent = habit;
+            container.appendChild(div);
+        });
+    }
+
+    if (container.innerHTML === '') {
+        container.innerHTML = '<p style="color: var(--text-muted);">No specific habits identified.</p>';
+    }
+}
+
+function displayIncomeSources(sources) {
+    const container = document.getElementById('incomeSources');
+    container.innerHTML = '';
+
+    if (sources.length === 0) {
+        container.innerHTML = '<p style="color: var(--text-muted);">No income sources identified.</p>';
+        return;
+    }
+
+    sources.forEach(source => {
+        const div = document.createElement('div');
+        div.className = 'spending-item';
+        div.innerHTML = `
+            <div>
+                <div class="spending-category">${source.source || 'Unknown'}</div>
+                <div class="spending-percentage">${source.frequency || ''} - ${source.stability || ''}</div>
+            </div>
+            <div class="spending-amount">${formatCurrency(source.amount || 0)}</div>
+        `;
+        container.appendChild(div);
+    });
+}
+
+function displayRiskAssessment(risk) {
+    const container = document.getElementById('riskAssessment');
+    container.innerHTML = `
+        <p><strong>Emergency Fund:</strong> ${risk.emergency_fund_status || 'Unknown'}</p>
+        <p><strong>Financial Stability:</strong> ${risk.financial_stability || 'Unknown'}</p>
+        <p><strong>Debt Situation:</strong> ${risk.debt_situation || 'Unknown'}</p>
+        <p style="margin-top: var(--space-md);">${risk.recommendations || 'No specific recommendations.'}</p>
+    `;
+}
+
+function displayRecommendations(recommendations) {
+    const container = document.getElementById('recommendations');
+    container.innerHTML = '';
+
+    // Stop doing
+    if (recommendations.stop_doing && recommendations.stop_doing.length > 0) {
+        const stopTitle = document.createElement('h4');
+        stopTitle.textContent = '🛑 Stop Doing';
+        stopTitle.style.color = '#ef4444';
+        container.appendChild(stopTitle);
+
+        recommendations.stop_doing.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'recommendation-item';
+            div.innerHTML = `
+                <div class="recommendation-header">
+                    <div class="recommendation-action">${item.action || 'Unknown action'}</div>
+                    <div class="impact-badge impact-${(item.impact || 'medium').toLowerCase()}">${item.impact || 'Medium'}</div>
+                </div>
+                <p>Potential savings: ${formatCurrency(item.potential_savings || 0)}</p>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    // Start doing
+    if (recommendations.start_doing && recommendations.start_doing.length > 0) {
+        const startTitle = document.createElement('h4');
+        startTitle.textContent = '✅ Start Doing';
+        startTitle.style.color = '#22c55e';
+        startTitle.style.marginTop = 'var(--space-md)';
+        container.appendChild(startTitle);
+
+        recommendations.start_doing.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'recommendation-item';
+            div.innerHTML = `
+                <div class="recommendation-header">
+                    <div class="recommendation-action">${item.action || 'Unknown action'}</div>
+                    <div class="impact-badge impact-${(item.difficulty || 'medium').toLowerCase()}">${item.difficulty || 'Medium'}</div>
+                </div>
+                <p>Potential benefit: ${formatCurrency(item.potential_benefit || 0)}</p>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    if (container.innerHTML === '') {
+        container.innerHTML = '<p style="color: var(--text-muted);">No specific recommendations available.</p>';
+    }
+}
+
+function displayActionPlan(actionPlan) {
+    const container = document.getElementById('actionPlan');
+    container.innerHTML = '';
+
+    const sections = [
+        { key: 'immediate_actions', title: '📅 Next 30 Days', items: actionPlan.immediate_actions || [] },
+        { key: 'short_term_goals', title: '🎯 3-6 Months', items: actionPlan.short_term_goals || [] },
+        { key: 'long_term_strategy', title: '🚀 Long Term', items: actionPlan.long_term_strategy || [] }
+    ];
+
+    sections.forEach(section => {
+        if (section.items.length > 0) {
+            const div = document.createElement('div');
+            div.className = 'timeline-item';
+            
+            const title = document.createElement('div');
+            title.className = 'timeline-title';
+            title.textContent = section.title;
+            div.appendChild(title);
+            
+            const ul = document.createElement('ul');
+            ul.style.margin = '0';
+            ul.style.paddingLeft = 'var(--space-md)';
+            section.items.forEach(item => {
+                const li = document.createElement('li');
+                li.textContent = item;
+                li.style.marginBottom = 'var(--space-xs)';
+                ul.appendChild(li);
+            });
+            div.appendChild(ul);
+            
+            container.appendChild(div);
+        }
+    });
+
+    if (container.innerHTML === '') {
+        container.innerHTML = '<p style="color: var(--text-muted);">No action plan available.</p>';
+    }
+}
+
+function displayIncomeOptimization(optimization) {
+    const container = document.getElementById('incomeOptimization');
+    container.innerHTML = '';
+
+    if (optimization.length === 0) {
+        container.innerHTML = '<p style="color: var(--text-muted);">No income optimization suggestions available.</p>';
+        return;
+    }
+
+    optimization.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'recommendation-item';
+        div.innerHTML = `
+            <div class="recommendation-header">
+                <div class="recommendation-action">${item.suggestion || 'Unknown suggestion'}</div>
+                <div class="impact-badge impact-${(item.effort_required || 'medium').toLowerCase()}">${item.effort_required || 'Medium'}</div>
+            </div>
+            <p>Potential increase: ${formatCurrency(item.potential_increase || 0)} | Timeframe: ${item.timeframe || 'Unknown'}</p>
+        `;
+        container.appendChild(div);
+    });
+}
+
+function formatCurrency(amount) {
+    return new Intl.NumberFormat('en-EU', {
+        style: 'currency',
+        currency: 'EUR'
+    }).format(amount || 0);
+}
+
+function showError(message) {
+    uploadSection.style.display = 'block';
+    loadingSection.style.display = 'none';
+    resultsSection.style.display = 'none';
+    
+    const existingError = document.querySelector('.error');
+    if (existingError) {
+        existingError.remove();
+    }
+    
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'error';
+    errorDiv.textContent = message;
+    
+    uploadSection.parentNode.insertBefore(errorDiv, uploadSection);
+    
+    setTimeout(() => {
+        if (errorDiv.parentNode) {
+            errorDiv.remove();
+        }
+    }, 5000);
+}
+
+function resetApp() {
+    uploadSection.style.display = 'block';
+    loadingSection.style.display = 'none';
+    resultsSection.style.display = 'none';
+    
+    fileInput.value = '';
+    currentFile = null;
+    document.querySelector('.upload-text').textContent = 'Drag and drop your bank statement here or click to browse';
+    
+    financialGoal.value = '';
+    goalAmount.value = '';
+    timeframeNumber.value = '';
+    timeframeUnit.value = 'months';
+    
+    analyzeBtn.disabled = true;
+    
+    const errorMessages = document.querySelectorAll('.error');
+    errorMessages.forEach(error => error.remove());
+    
+    if (spendingChart) {
+        spendingChart.destroy();
+        spendingChart = null;
+    }
+}
+</script>
+{% endblock %}
