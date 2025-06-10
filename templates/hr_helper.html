@@ -1,0 +1,648 @@
+{% extends "base.html" %}
+
+{% block title %}HR Helper - Flooky AI{% endblock %}
+
+{% block extra_css %}
+<style>
+.hr-helper-container {
+    padding: var(--space-xl) 0;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.hr-header {
+    text-align: center;
+    margin-bottom: var(--space-xl);
+}
+
+.hr-header h1 {
+    font-weight: 800;
+    font-size: 2.5rem;
+    color: var(--text-primary);
+    margin-bottom: var(--space-md);
+}
+
+.hr-header p {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.form-container {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    margin-bottom: var(--space-lg);
+    box-shadow: var(--card-shadow);
+}
+
+.form-group {
+    margin-bottom: var(--space-lg);
+}
+
+.form-group label {
+    display: block;
+    color: var(--text-primary);
+    font-weight: 600;
+    margin-bottom: var(--space-sm);
+    font-size: 1.1rem;
+}
+
+.form-group input[type="text"] {
+    width: 100%;
+    padding: var(--space-md);
+    background: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-group input[type="text"]:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(19, 121, 248, 0.1);
+}
+
+.file-upload {
+    position: relative;
+    display: block;
+    width: 100%;
+}
+
+.file-upload input[type="file"] {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+
+.file-upload-label {
+    display: block;
+    padding: var(--space-xl);
+    background: var(--bg-color);
+    border: 2px dashed var(--border-color);
+    border-radius: var(--radius-md);
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: var(--text-secondary);
+}
+
+.file-upload:hover .file-upload-label {
+    border-color: var(--primary-color);
+    background: rgba(19, 121, 248, 0.05);
+}
+
+.file-list {
+    margin-top: var(--space-md);
+    padding: var(--space-md);
+    background: var(--bg-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+}
+
+.file-item {
+    display: inline-block;
+    background: var(--primary-color);
+    color: white;
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-sm);
+    margin: var(--space-xs);
+    font-size: 0.9rem;
+}
+
+.top-select {
+    display: flex;
+    gap: var(--space-md);
+    flex-wrap: wrap;
+}
+
+.top-option {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+}
+
+.top-option input[type="radio"] {
+    margin: 0;
+}
+
+.top-option label {
+    margin: 0;
+    cursor: pointer;
+    color: var(--text-secondary);
+    font-weight: normal;
+}
+
+.analyze-btn {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+    color: white;
+    border: none;
+    padding: var(--space-md) var(--space-xl);
+    border-radius: var(--radius-sm);
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: var(--button-shadow);
+    width: 100%;
+}
+
+.analyze-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(19, 121, 248, 0.4);
+}
+
+.analyze-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.loading {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-xl);
+    text-align: center;
+    margin-bottom: var(--space-lg);
+    box-shadow: var(--card-shadow);
+}
+
+.loading .spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border-color);
+    border-radius: 50%;
+    border-top-color: var(--primary-color);
+    animation: spin 1s ease-in-out infinite;
+    margin-right: var(--space-sm);
+}
+
+.loading p {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    margin: var(--space-sm) 0 0 0;
+}
+
+.results {
+    margin-top: var(--space-lg);
+}
+
+.results-header {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    margin-bottom: var(--space-lg);
+    box-shadow: var(--card-shadow);
+    text-align: center;
+}
+
+.results-header h3 {
+    color: var(--text-primary);
+    font-weight: 700;
+    margin-bottom: var(--space-sm);
+}
+
+.results-stats {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+}
+
+.candidate-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-lg);
+    overflow: hidden;
+    box-shadow: var(--card-shadow);
+    transition: all 0.3s ease;
+}
+
+.candidate-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--hover-shadow);
+}
+
+.candidate-header {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+    color: white;
+    padding: var(--space-lg);
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+.candidate-rank {
+    background: rgba(255, 255, 255, 0.2);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.2rem;
+}
+
+.candidate-name h3 {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 700;
+}
+
+.candidate-title {
+    font-size: 0.9rem;
+    opacity: 0.9;
+    margin-top: var(--space-xs);
+}
+
+.candidate-details {
+    padding: var(--space-lg);
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--space-md);
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+}
+
+.detail-label {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.detail-value {
+    color: var(--text-secondary);
+    word-break: break-word;
+}
+
+.detail-value a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.detail-value a:hover {
+    text-decoration: underline;
+}
+
+.error {
+    background: rgba(220, 53, 69, 0.1);
+    border: 1px solid rgba(220, 53, 69, 0.3);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    color: #ff6b7a;
+    margin-bottom: var(--space-lg);
+    text-align: center;
+}
+
+.no-results {
+    text-align: center;
+    color: var(--text-muted);
+    padding: var(--space-xl);
+    font-style: italic;
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-sm);
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 600;
+    margin-bottom: var(--space-lg);
+    transition: all 0.3s ease;
+}
+
+.back-link:hover {
+    color: var(--primary-hover);
+    text-decoration: none;
+    transform: translateX(-3px);
+}
+
+@media (max-width: 768px) {
+    .hr-helper-container {
+        padding: var(--space-md) 0;
+    }
+    
+    .hr-header h1 {
+        font-size: 2rem;
+    }
+    
+    .form-container {
+        padding: var(--space-md);
+    }
+    
+    .top-select {
+        flex-direction: column;
+        gap: var(--space-sm);
+    }
+    
+    .candidate-details {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hr-helper-container">
+    <a href="/tools" class="back-link">
+        <i class="fas fa-arrow-left"></i>
+        Back to Tools
+    </a>
+
+    <div class="hr-header">
+        <h1>👥 Flooky HR Helper</h1>
+        <p>Upload CVs and find the best candidates using AI-powered analysis and matching</p>
+    </div>
+
+    <div class="form-container">
+        <form id="cvAnalyzerForm" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="jobRole">Job Role You're Looking For:</label>
+                <input type="text" id="jobRole" name="job_role" placeholder="e.g., Software Engineer, Marketing Manager, Data Scientist..." required>
+            </div>
+
+            <div class="form-group">
+                <label>Import CV Files (PDF, DOC, DOCX):</label>
+                <div class="file-upload">
+                    <input type="file" id="cvFiles" name="cv_files" multiple accept=".pdf,.doc,.docx" required>
+                    <label for="cvFiles" class="file-upload-label">
+                        <i class="fas fa-file-upload" style="font-size: 2rem; margin-bottom: 10px; display: block;"></i>
+                        Click to select CV files or drag & drop
+                        <div style="font-size: 14px; margin-top: 5px; opacity: 0.7;">
+                            Supported formats: PDF, DOC, DOCX
+                        </div>
+                    </label>
+                </div>
+                <div id="fileList" class="file-list" style="display: none;"></div>
+            </div>
+
+            <div class="form-group">
+                <label>Select Number of Top Candidates:</label>
+                <div class="top-select">
+                    <div class="top-option">
+                        <input type="radio" id="top1" name="top_count" value="1" checked>
+                        <label for="top1">TOP 1</label>
+                    </div>
+                    <div class="top-option">
+                        <input type="radio" id="top3" name="top_count" value="3">
+                        <label for="top3">TOP 3</label>
+                    </div>
+                    <div class="top-option">
+                        <input type="radio" id="top5" name="top_count" value="5">
+                        <label for="top5">TOP 5</label>
+                    </div>
+                    <div class="top-option">
+                        <input type="radio" id="top10" name="top_count" value="10">
+                        <label for="top10">TOP 10</label>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="analyze-btn" id="analyzeBtn">
+                <i class="fas fa-search"></i> Analyze CVs
+            </button>
+        </form>
+    </div>
+
+    <div id="loading" class="loading" style="display: none;">
+        <div class="spinner"></div>
+        <p>Analyzing CVs with AI... This may take a few moments.</p>
+    </div>
+
+    <div id="results" class="results" style="display: none;">
+        <div class="results-header">
+            <h3><i class="fas fa-trophy"></i> Top Candidates Found</h3>
+            <div id="resultsStats" class="results-stats"></div>
+        </div>
+        <div id="analysisResult" class="analysis-result"></div>
+    </div>
+
+    <div id="error" class="error" style="display: none;"></div>
+</div>
+
+<script>
+document.getElementById('cvFiles').addEventListener('change', function(e) {
+    const fileList = document.getElementById('fileList');
+    const files = Array.from(e.target.files);
+    
+    if (files.length > 0) {
+        fileList.style.display = 'block';
+        fileList.innerHTML = '<strong>Selected files:</strong><br>' + 
+            files.map(file => `<span class="file-item">${file.name}</span>`).join('');
+    } else {
+        fileList.style.display = 'none';
+    }
+});
+
+function displayCandidates(analysisText) {
+    const resultsContainer = document.getElementById('analysisResult');
+    
+    // Parse the analysis text to extract candidate information
+    const candidates = parseAnalysisText(analysisText);
+    
+    if (candidates.length === 0) {
+        resultsContainer.innerHTML = '<div class="no-results">No candidates found in the analysis.</div>';
+        return;
+    }
+    
+    // Generate HTML for each candidate
+    const candidatesHTML = candidates.map((candidate, index) => `
+        <div class="candidate-card">
+            <div class="candidate-header">
+                <div class="candidate-rank">${index + 1}</div>
+                <div class="candidate-name">
+                    <h3>${candidate.name || 'Name not found'}</h3>
+                    <div class="candidate-title">Top Candidate for the Position</div>
+                </div>
+            </div>
+            <div class="candidate-details">
+                <div class="detail-item">
+                    <div class="detail-label">Email</div>
+                    <div class="detail-value">${formatEmail(candidate.email)}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Phone</div>
+                    <div class="detail-value">${formatPhone(candidate.phone)}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Experience</div>
+                    <div class="detail-value">${candidate.experience || 'N/A'}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Education</div>
+                    <div class="detail-value">${candidate.education || 'N/A'}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">LinkedIn</div>
+                    <div class="detail-value">${formatLinkedIn(candidate.linkedin)}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Website</div>
+                    <div class="detail-value">${formatWebsite(candidate.website)}</div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+    
+    resultsContainer.innerHTML = candidatesHTML;
+}
+
+function formatEmail(email) {
+    if (!email || email === 'N/A' || email.includes('not found') || email.includes('not provided')) {
+        return 'N/A';
+    }
+    if (email.includes('@')) {
+        return `<a href="mailto:${email}">${email}</a>`;
+    }
+    return email;
+}
+
+function formatPhone(phone) {
+    if (!phone || phone === 'N/A' || phone.includes('not found') || phone.includes('not provided')) {
+        return 'N/A';
+    }
+    const phonePattern = /[\d\s\-\+\(\)]+/;
+    if (phonePattern.test(phone)) {
+        return `<a href="tel:${phone.replace(/\s/g, '')}">${phone}</a>`;
+    }
+    return phone;
+}
+
+function formatLinkedIn(linkedin) {
+    if (!linkedin || linkedin === 'N/A' || linkedin.includes('not found') || linkedin.includes('not provided')) {
+        return 'N/A';
+    }
+    
+    // Clean the LinkedIn URL
+    let cleanUrl = linkedin.trim();
+    
+    // If it already has http/https, use it as is
+    if (cleanUrl.startsWith('http://') || cleanUrl.startsWith('https://')) {
+        return `<a href="${cleanUrl}" target="_blank">View LinkedIn Profile</a>`;
+    }
+    
+    // If it starts with linkedin.com, add https://
+    if (cleanUrl.startsWith('linkedin.com') || cleanUrl.startsWith('www.linkedin.com')) {
+        return `<a href="https://${cleanUrl}" target="_blank">View LinkedIn Profile</a>`;
+    }
+    
+    // If it contains linkedin.com anywhere in the text
+    if (cleanUrl.includes('linkedin.com')) {
+        // Extract just the linkedin.com part
+        const match = cleanUrl.match(/(linkedin\.com[^\s]*)/);
+        if (match) {
+            return `<a href="https://${match[1]}" target="_blank">View LinkedIn Profile</a>`;
+        }
+    }
+    
+    // If it looks like a LinkedIn username/path
+    if (cleanUrl.includes('/in/') && !cleanUrl.includes('linkedin.com')) {
+        return `<a href="https://linkedin.com${cleanUrl.startsWith('/') ? '' : '/'}${cleanUrl}" target="_blank">View LinkedIn Profile</a>`;
+    }
+    
+    return linkedin;
+}
+
+function formatWebsite(website) {
+    if (!website || website === 'N/A' || website.includes('not found') || website.includes('not provided')) {
+        return 'N/A';
+    }
+    
+    if (website.includes('http://') || website.includes('https://') || website.includes('www.')) {
+        return `<a href="${website.startsWith('http') ? website : 'https://' + website}" target="_blank">Visit Website</a>`;
+    }
+    
+    if (website.includes('.com') || website.includes('.org') || website.includes('.net') || website.includes('.io')) {
+        return `<a href="https://${website}" target="_blank">Visit Website</a>`;
+    }
+    
+    return website;
+}
+
+function parseAnalysisText(text) {
+    const candidates = [];
+    const candidateBlocks = text.split(/Candidate \d+:/i).slice(1);
+    
+    candidateBlocks.forEach(block => {
+        const candidate = {};
+        
+        const nameMatch = block.match(/Full Name:\s*(.+?)(?:\n|$)/i);
+        const emailMatch = block.match(/Email:\s*(.+?)(?:\n|$)/i);
+        const phoneMatch = block.match(/Phone Number:\s*(.+?)(?:\n|$)/i);
+        const experienceMatch = block.match(/Years of Experience:\s*(.+?)(?:\n|$)/i);
+        const educationMatch = block.match(/Education:\s*(.+?)(?:\n|$)/i);
+        const linkedinMatch = block.match(/LinkedIn:\s*(.+?)(?:\n|$)/i);
+        const websiteMatch = block.match(/Website:\s*(.+?)(?:\n|$)/i);
+        
+        candidate.name = nameMatch ? nameMatch[1].trim() : 'Name not found';
+        candidate.email = emailMatch ? emailMatch[1].trim() : 'N/A';
+        candidate.phone = phoneMatch ? phoneMatch[1].trim() : 'N/A';
+        candidate.experience = experienceMatch ? experienceMatch[1].trim() : 'N/A';
+        candidate.education = educationMatch ? educationMatch[1].trim() : 'N/A';
+        candidate.linkedin = linkedinMatch ? linkedinMatch[1].trim() : 'N/A';
+        candidate.website = websiteMatch ? websiteMatch[1].trim() : 'N/A';
+        
+        candidates.push(candidate);
+    });
+    
+    return candidates;
+}
+
+document.getElementById('cvAnalyzerForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const loading = document.getElementById('loading');
+    const results = document.getElementById('results');
+    const error = document.getElementById('error');
+    
+    // Reset UI
+    results.style.display = 'none';
+    error.style.display = 'none';
+    loading.style.display = 'block';
+    analyzeBtn.disabled = true;
+    
+    try {
+        const response = await fetch('/app/flooky-hr-helper/analyze', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('resultsStats').innerHTML = 
+                `Analyzed ${data.files_processed} CVs for "${data.job_role}" position • Top ${data.top_count} selected`;
+            
+            displayCandidates(data.analysis);
+            results.style.display = 'block';
+        } else {
+            throw new Error(data.error || 'Analysis failed');
+        }
+    } catch (err) {
+        error.textContent = 'Error: ' + err.message;
+        error.style.display = 'block';
+    } finally {
+        loading.style.display = 'none';
+        analyzeBtn.disabled = false;
+    }
+});
+</script>
+{% endblock %}

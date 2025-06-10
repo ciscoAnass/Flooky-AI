@@ -1,0 +1,730 @@
+{% extends "base.html" %}
+
+{% block title %}Bill Analyzer - Flooky AI{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<style>
+.bill-analyzer-container {
+    padding: var(--space-xl) 0;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.bill-header {
+    text-align: center;
+    margin-bottom: var(--space-xl);
+}
+
+.bill-header h1 {
+    font-weight: 800;
+    font-size: 2.5rem;
+    color: var(--text-primary);
+    margin-bottom: var(--space-md);
+}
+
+.bill-header p {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.upload-section {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    margin-bottom: var(--space-lg);
+    box-shadow: var(--card-shadow);
+}
+
+.upload-area {
+    border: 2px dashed var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-xl);
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+}
+
+.upload-area:hover,
+.upload-area.dragover {
+    border-color: var(--primary-color);
+    background: rgba(19, 121, 248, 0.05);
+}
+
+.upload-icon {
+    font-size: 3rem;
+    margin-bottom: var(--space-md);
+    color: var(--text-secondary);
+}
+
+.upload-text {
+    font-size: 1.2rem;
+    color: var(--text-primary);
+    margin-bottom: var(--space-md);
+    font-weight: 600;
+}
+
+.file-input {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+
+.upload-btn {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+    color: white;
+    border: none;
+    padding: var(--space-md) var(--space-xl);
+    border-radius: var(--radius-sm);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: var(--button-shadow);
+}
+
+.upload-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(19, 121, 248, 0.4);
+}
+
+.loading {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-xl);
+    text-align: center;
+    margin-bottom: var(--space-lg);
+    box-shadow: var(--card-shadow);
+}
+
+.loading .spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border-color);
+    border-radius: 50%;
+    border-top-color: var(--primary-color);
+    animation: spin 1s ease-in-out infinite;
+    margin-right: var(--space-sm);
+}
+
+.loading div {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    margin: var(--space-sm) 0;
+}
+
+.results {
+    margin-top: var(--space-lg);
+}
+
+.summary-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    margin-bottom: var(--space-lg);
+    box-shadow: var(--card-shadow);
+    text-align: center;
+}
+
+.summary-title {
+    color: var(--text-primary);
+    font-weight: 700;
+    font-size: 1.2rem;
+    margin-bottom: var(--space-md);
+}
+
+.total-amount {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--primary-color);
+    margin-bottom: var(--space-xs);
+}
+
+.currency {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    margin-bottom: var(--space-md);
+}
+
+.items-table {
+    width: 100%;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    border-collapse: collapse;
+    overflow: hidden;
+    box-shadow: var(--card-shadow);
+    margin-bottom: var(--space-lg);
+}
+
+.items-table th {
+    background: var(--primary-color);
+    color: white;
+    padding: var(--space-md);
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.items-table td {
+    padding: var(--space-md);
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    vertical-align: top;
+}
+
+.items-table tr:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.items-table tr:last-child td {
+    border-bottom: none;
+}
+
+.amount-cell {
+    font-weight: 600;
+    color: var(--text-primary);
+    text-align: right;
+}
+
+.category-badge {
+    background: rgba(19, 121, 248, 0.1);
+    color: var(--primary-color);
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.chart-container {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    margin-bottom: var(--space-lg);
+    box-shadow: var(--card-shadow);
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+    overflow: hidden;
+}
+
+.chart-wrapper {
+    position: relative;
+    height: 300px;
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.chart-wrapper h3 {
+    color: var(--text-primary);
+    font-weight: 700;
+    margin-bottom: var(--space-md);
+    text-align: center;
+}
+
+.insights {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--space-lg);
+    margin-bottom: var(--space-lg);
+}
+
+.insight-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    box-shadow: var(--card-shadow);
+}
+
+.insight-title {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    color: var(--text-primary);
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: var(--space-md);
+}
+
+.insight-icon {
+    font-size: 1.2rem;
+}
+
+.insight-content {
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.reset-btn {
+    background: var(--border-color);
+    color: var(--text-primary);
+    border: none;
+    padding: var(--space-md) var(--space-xl);
+    border-radius: var(--radius-sm);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.reset-btn:hover {
+    background: var(--text-muted);
+    transform: translateY(-2px);
+}
+
+.error {
+    background: rgba(220, 53, 69, 0.1);
+    border: 1px solid rgba(220, 53, 69, 0.3);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    color: #ff6b7a;
+    margin-bottom: var(--space-lg);
+    text-align: center;
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-sm);
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 600;
+    margin-bottom: var(--space-lg);
+    transition: all 0.3s ease;
+}
+
+.back-link:hover {
+    color: var(--primary-hover);
+    text-decoration: none;
+    transform: translateX(-3px);
+}
+
+@media (max-width: 768px) {
+    .bill-analyzer-container {
+        padding: var(--space-md) 0;
+    }
+    
+    .bill-header h1 {
+        font-size: 2rem;
+    }
+    
+    .upload-section {
+        padding: var(--space-md);
+    }
+    
+    .upload-area {
+        padding: var(--space-lg);
+    }
+    
+    .total-amount {
+        font-size: 2rem;
+    }
+    
+    .items-table {
+        font-size: 0.9rem;
+    }
+    
+    .items-table th,
+    .items-table td {
+        padding: var(--space-sm);
+    }
+    
+    .insights {
+        grid-template-columns: 1fr;
+    }
+    
+    .chart-container {
+        max-width: 90%;
+    }
+    
+    .chart-wrapper {
+        height: 250px;
+        max-width: 300px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bill-analyzer-container">
+    <a href="/tools" class="back-link">
+        <i class="fas fa-arrow-left"></i>
+        Back to Tools
+    </a>
+
+    <div class="bill-header">
+        <h1>🧾 Flooky Bill Analyzer</h1>
+        <p>Upload your bill and get AI-powered insights in seconds</p>
+    </div>
+
+    <div class="upload-section" id="uploadSection">
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">📄</div>
+            <div class="upload-text">
+                Drag and drop your bill here or click to browse
+            </div>
+            <div style="margin-bottom: 15px; color: var(--text-muted); font-size: 0.9em;">
+                Supports PDF, PNG, JPG, JPEG files (max 16MB)
+            </div>
+            <input type="file" id="fileInput" class="file-input" accept=".pdf,.png,.jpg,.jpeg,.gif,.bmp,.tiff">
+            <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                Choose File
+            </button>
+        </div>
+    </div>
+
+    <div class="loading" id="loadingSection" style="display: none;">
+        <div class="spinner"></div>
+        <div>Analyzing your bill with AI...</div>
+        <div style="margin-top: 10px; font-size: 0.9em; color: var(--text-muted);">
+            This may take a few seconds
+        </div>
+    </div>
+
+    <div class="results" id="resultsSection" style="display: none;">
+        <div class="summary-card">
+            <div class="summary-title">📊 Bill Summary</div>
+            <div class="total-amount" id="totalAmount">$0.00</div>
+            <div class="currency" id="currency">USD</div>
+            <div id="summaryText" style="margin-top: 15px; color: var(--text-secondary);"></div>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <h3 style="color: var(--text-primary); margin-bottom: 15px;">📋 Itemized Breakdown</h3>
+            <table class="items-table" id="itemsTable">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Amount</th>
+                        <th>Category</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody id="itemsTableBody">
+                </tbody>
+            </table>
+        </div>
+
+        <div class="chart-container">
+            <div class="chart-wrapper">
+                <h3>📈 Spending by Item</h3>
+                <canvas id="categoryChart" width="400" height="400"></canvas>
+            </div>
+        </div>
+
+        <div class="insights">
+            <div class="insight-card">
+                <div class="insight-title">
+                    <span class="insight-icon">🔍</span>
+                    Observations
+                </div>
+                <div class="insight-content" id="observationsText"></div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-title">
+                    <span class="insight-icon">💡</span>
+                    Suggestions
+                </div>
+                <div class="insight-content" id="suggestionsText"></div>
+            </div>
+        </div>
+
+        <div style="text-align: center;">
+            <button class="reset-btn" onclick="resetApp()">
+                Analyze Another Bill
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+let chart = null;
+
+// File upload handling
+const fileInput = document.getElementById('fileInput');
+const uploadArea = document.getElementById('uploadArea');
+const uploadSection = document.getElementById('uploadSection');
+const loadingSection = document.getElementById('loadingSection');
+const resultsSection = document.getElementById('resultsSection');
+
+// Drag and drop functionality
+uploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadArea.classList.add('dragover');
+});
+
+uploadArea.addEventListener('dragleave', () => {
+    uploadArea.classList.remove('dragover');
+});
+
+uploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadArea.classList.remove('dragover');
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+        handleFile(files[0]);
+    }
+});
+
+uploadArea.addEventListener('click', () => {
+    fileInput.click();
+});
+
+fileInput.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) {
+        handleFile(e.target.files[0]);
+    }
+});
+
+function handleFile(file) {
+    // Validate file
+    const allowedTypes = ['application/pdf', 'image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/bmp', 'image/tiff'];
+    if (!allowedTypes.includes(file.type)) {
+        showError('Please upload a PDF or image file.');
+        return;
+    }
+
+    if (file.size > 16 * 1024 * 1024) {
+        showError('File size must be less than 16MB.');
+        return;
+    }
+
+    uploadFile(file);
+}
+
+function uploadFile(file) {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    // Show loading
+    uploadSection.style.display = 'none';
+    loadingSection.style.display = 'block';
+    resultsSection.style.display = 'none';
+
+    fetch('/app/flooky-bill-analyzer/upload', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        loadingSection.style.display = 'none';
+        
+        if (data.success) {
+            displayResults(data.data);
+        } else {
+            showError(data.error || 'An error occurred while processing your bill.');
+        }
+    })
+    .catch(error => {
+        loadingSection.style.display = 'none';
+        showError('Network error: ' + error.message);
+    });
+}
+
+function displayResults(data) {
+    // Update summary
+    document.getElementById('totalAmount').textContent = formatCurrency(data.total, data.currency);
+    document.getElementById('currency').textContent = data.currency || 'USD';
+    document.getElementById('summaryText').textContent = data.summary || '';
+
+    // Update items table
+    const tableBody = document.getElementById('itemsTableBody');
+    tableBody.innerHTML = '';
+    
+    if (data.items && data.items.length > 0) {
+        data.items.forEach(item => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${escapeHtml(item.name || 'Unknown')}</td>
+                <td class="amount-cell">${formatCurrency(item.amount || 0, data.currency)}</td>
+                <td><span class="category-badge">${escapeHtml(item.category || 'Unknown')}</span></td>
+                <td>${escapeHtml(item.notes || '')}</td>
+            `;
+            tableBody.appendChild(row);
+        });
+    } else {
+        const row = document.createElement('tr');
+        row.innerHTML = '<td colspan="4" style="text-align: center; color: var(--text-muted);">No items found</td>';
+        tableBody.appendChild(row);
+    }
+
+    // Update insights
+    document.getElementById('observationsText').textContent = data.observations || 'No specific observations.';
+    document.getElementById('suggestionsText').textContent = data.suggestions || 'No specific suggestions.';
+
+    // Create chart
+    createCategoryChart(data.items || [], data.currency);
+
+    // Show results
+    resultsSection.style.display = 'block';
+}
+
+function createCategoryChart(items, currency) {
+    const ctx = document.getElementById('categoryChart').getContext('2d');
+    
+    // Destroy existing chart
+    if (chart) {
+        chart.destroy();
+    }
+
+    // Calculate item totals (by item name, not category)
+    const itemTotals = {};
+    items.forEach(item => {
+        const itemName = item.name || 'Unknown';
+        const amount = item.amount || 0;
+        itemTotals[itemName] = (itemTotals[itemName] || 0) + amount;
+    });
+
+    const itemNames = Object.keys(itemTotals);
+    const amounts = Object.values(itemTotals);
+
+    // Generate colors
+    const colors = [
+        '#4facfe', '#00f2fe', '#43e97b', '#38f9d7',
+        '#667eea', '#764ba2', '#f093fb', '#f5576c',
+        '#4ecdc4', '#44a08d', '#ffecd2', '#fcb69f',
+        '#a8edea', '#fed6e3', '#ffeaa7', '#fab1a0'
+    ];
+
+    if (itemNames.length === 0) {
+        // Show empty state
+        ctx.fillStyle = '#ccc';
+        ctx.font = '16px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('No data to display', ctx.canvas.width / 2, ctx.canvas.height / 2);
+        return;
+    }
+
+    chart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: itemNames,
+            datasets: [{
+                data: amounts,
+                backgroundColor: colors.slice(0, itemNames.length),
+                borderWidth: 0,
+                hoverOffset: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            layout: {
+                padding: 10
+            },
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 8,
+                        usePointStyle: true,
+                        font: {
+                            size: 10
+                        },
+                        color: '#e0e0e0',
+                        boxWidth: 10
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = formatCurrency(context.parsed, currency);
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((context.parsed / total) * 100).toFixed(1);
+                            return `${label}: ${value} (${percentage}%)`;
+                        }
+                    }
+                }
+            },
+            cutout: '60%'
+        }
+    });
+}
+
+function formatCurrency(amount, currency = 'USD') {
+    const currencySymbols = {
+        'USD': '$',
+        'EUR': '€',
+        'GBP': '£',
+        'JPY': '¥',
+        'CAD': 'C',
+        'AUD': 'A'
+    };
+    
+    const symbol = currencySymbols[currency] || currency + ' ';
+    return symbol + parseFloat(amount || 0).toFixed(2);
+}
+
+function escapeHtml(unsafe) {
+    return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+function showError(message) {
+    uploadSection.style.display = 'block';
+    loadingSection.style.display = 'none';
+    resultsSection.style.display = 'none';
+    
+    // Remove existing error messages
+    const existingError = document.querySelector('.error');
+    if (existingError) {
+        existingError.remove();
+    }
+    
+    // Create error message
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'error';
+    errorDiv.textContent = message;
+    
+    // Insert error before upload section
+    uploadSection.parentNode.insertBefore(errorDiv, uploadSection);
+    
+    // Auto-remove error after 5 seconds
+    setTimeout(() => {
+        if (errorDiv.parentNode) {
+            errorDiv.remove();
+        }
+    }, 5000);
+}
+
+function resetApp() {
+    uploadSection.style.display = 'block';
+    loadingSection.style.display = 'none';
+    resultsSection.style.display = 'none';
+    
+    // Reset file input
+    fileInput.value = '';
+    
+    // Remove any error messages
+    const errorMessages = document.querySelectorAll('.error');
+    errorMessages.forEach(error => error.remove());
+    
+    // Destroy chart
+    if (chart) {
+        chart.destroy();
+        chart = null;
+    }
+}
+</script>
+{% endblock %}

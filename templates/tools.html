@@ -1,0 +1,436 @@
+{% extends "base.html" %}
+
+{% block title %}Tools - Flooky AI{% endblock %}
+
+{% block extra_css %}
+<style>
+.tools-container {
+    padding: var(--space-xl) 0;
+}
+
+.tools-header {
+    text-align: center;
+    margin-bottom: var(--space-xl);
+}
+
+.tools-header h1 {
+    font-weight: 800;
+    font-size: 2.5rem;
+    color: var(--text-primary);
+    margin-bottom: var(--space-md);
+}
+
+.tools-header p {
+    color: var(--text-secondary);
+    font-size: 1.2rem;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.tools-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: var(--space-lg);
+    margin-bottom: var(--space-xl);
+}
+
+.tool-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    text-decoration: none;
+    color: inherit;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.tool-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--hover-shadow);
+    border-color: var(--primary-color);
+    text-decoration: none;
+    color: inherit;
+}
+
+.tool-card:hover .tool-image {
+    transform: scale(1.05);
+}
+
+.tool-image-container {
+    height: 200px;
+    overflow: hidden;
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.tool-image {
+    width: 80px;
+    height: 80px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    transition: transform 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.tool-content {
+    padding: var(--space-lg);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.tool-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: var(--space-sm);
+    line-height: 1.3;
+}
+
+.tool-description {
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: var(--space-md);
+    flex: 1;
+}
+
+.tool-badge {
+    display: inline-block;
+    background: var(--primary-color);
+    color: white;
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.tool-badge.new {
+    background: var(--accent-color);
+    color: var(--bg-color);
+}
+
+.tool-badge.premium {
+    background: linear-gradient(135deg, #ffd700, #ffed4e);
+    color: var(--bg-color);
+}
+
+.coming-soon {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.coming-soon:hover {
+    transform: none;
+    box-shadow: var(--card-shadow);
+    border-color: var(--border-color);
+}
+
+.coming-soon .tool-badge {
+    background: var(--text-muted);
+}
+
+.section-divider {
+    margin: var(--space-xl) 0;
+    text-align: center;
+}
+
+.section-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: var(--space-sm);
+}
+
+.section-subtitle {
+    color: var(--text-secondary);
+    margin-bottom: var(--space-lg);
+}
+
+@media (max-width: 768px) {
+    .tools-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-md);
+    }
+    
+    .tools-header h1 {
+        font-size: 2rem;
+    }
+    
+    .tool-content {
+        padding: var(--space-md);
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="tools-container">
+    <div class="tools-header">
+        <h1>🛠️ Flooky AI Tools</h1>
+        <p>Discover powerful AI-driven tools to enhance your productivity and streamline your workflow</p>
+    </div>
+
+    <!-- Available Tools Section -->
+    <div class="section-divider">
+        <h2 class="section-title">✨ Available Now</h2>
+        <p class="section-subtitle">Ready-to-use tools that are live and functional</p>
+    </div>
+
+    <div class="tools-grid">
+        <!-- Video Summary Tool -->
+        <a href="/app/flooky-video-summary" class="tool-card">
+            <div class="tool-image-container">
+                <div class="tool-image">
+                    🎥
+                </div>
+            </div>
+            <div class="tool-content">
+                <h3 class="tool-title">Flooky Video Summary</h3>
+                <p class="tool-description">
+                    Analyze YouTube videos with AI-powered fact-checking and reliability scoring. Get comprehensive summaries and detailed analysis of video content.
+                </p>
+                <span class="tool-badge new">New</span>
+            </div>
+        </a>
+
+        <!-- Chat Tool -->
+        <a href="/" class="tool-card">
+            <div class="tool-image-container">
+                <div class="tool-image">
+                    💬
+                </div>
+            </div>
+            <div class="tool-content">
+                <h3 class="tool-title">Flooky AI Chat</h3>
+                <p class="tool-description">
+                    Have intelligent conversations with Flooky AI. Get help with coding, writing, analysis, and general questions with voice support.
+                </p>
+                <span class="tool-badge">Core</span>
+            </div>
+        </a>
+    </div>
+
+        <!-- Bill Analyzer -->
+        <a href="/app/flooky-bill-analyzer" class="tool-card">
+            <div class="tool-image-container">
+                <div class="tool-image">
+                    🧾
+                </div>
+            </div>
+            <div class="tool-content">
+                <h3 class="tool-title">Flooky Bill Analyzer</h3>
+                <p class="tool-description">
+                    Upload and analyze bills, invoices, and financial documents. Extract key information and detect anomalies with AI precision.
+                </p>
+                <span class="tool-badge new">New</span>
+            </div>
+        </a>
+
+        <!-- HR Helper -->
+        <a href="/app/flooky-hr-helper" class="tool-card">
+            <div class="tool-image-container">
+                <div class="tool-image">
+                    👥
+                </div>
+            </div>
+            <div class="tool-content">
+                <h3 class="tool-title">Flooky HR Helper</h3>
+                <p class="tool-description">
+                    Streamline your hiring process with AI-powered resume screening, candidate matching, and interview preparation tools.
+                </p>
+                <span class="tool-badge new">New</span>
+            </div>
+        </a>
+    </div>
+
+    <!-- Coming Soon Section -->
+    <div class="section-divider">
+        <h2 class="section-title">🚀 Coming Soon</h2>
+        <p class="section-subtitle">Exciting tools currently in development</p>
+    </div>
+
+    <div class="tools-grid">
+        <!-- Contract Analyzer -->
+        <div class="tool-card coming-soon">
+            <div class="tool-image-container">
+                <div class="tool-image">
+                    📋
+                </div>
+            </div>
+            <div class="tool-content">
+                <h3 class="tool-title">Flooky Contract Analyzer</h3>
+                <p class="tool-description">
+                    Review contracts and legal documents with AI assistance. Identify key clauses, potential issues, and important terms automatically.
+                </p>
+                <span class="tool-badge">Coming Soon</span>
+            </div>
+        </div>
+
+        <!-- Code Review Tool -->
+        <div class="tool-card coming-soon">
+            <div class="tool-image-container">
+                <div class="tool-image">
+                    💻
+                </div>
+            </div>
+            <div class="tool-content">
+                <h3 class="tool-title">Flooky Code Review</h3>
+                <p class="tool-description">
+                    Get automated code reviews with security analysis, performance optimization suggestions, and best practice recommendations.
+                </p>
+                <span class="tool-badge">Coming Soon</span>
+            </div>
+        </div>
+
+        <!-- Content Generator -->
+        <div class="tool-card coming-soon">
+            <div class="tool-image-container">
+                <div class="tool-image">
+                    ✍️
+                </div>
+            </div>
+            <div class="tool-content">
+                <h3 class="tool-title">Flooky Content Generator</h3>
+                <p class="tool-description">
+                    Generate high-quality content for blogs, social media, and marketing materials with customizable AI templates.
+                </p>
+                <span class="tool-badge">Coming Soon</span>
+            </div>
+        </div>
+
+        <!-- Email Assistant -->
+        <div class="tool-card coming-soon">
+            <div class="tool-image-container">
+                <div class="tool-image">
+                    📧
+                </div>
+            </div>
+            <div class="tool-content">
+                <h3 class="tool-title">Flooky Email Assistant</h3>
+                <p class="tool-description">
+                    Compose professional emails, generate responses, and manage your inbox with intelligent AI assistance and templates.
+                </p>
+                <span class="tool-badge">Coming Soon</span>
+            </div>
+        </div>
+
+        <!-- Data Visualization -->
+        <div class="tool-card coming-soon">
+            <div class="tool-image-container">
+                <div class="tool-image">
+                    📊
+                </div>
+            </div>
+            <div class="tool-content">
+                <h3 class="tool-title">Flooky Data Visualizer</h3>
+                <p class="tool-description">
+                    Transform raw data into beautiful, interactive charts and dashboards. Upload CSV files and get instant insights.
+                </p>
+                <span class="tool-badge">Coming Soon</span>
+            </div>
+        </div>
+
+        <!-- Language Translator -->
+        <div class="tool-card coming-soon">
+            <div class="tool-image-container">
+                <div class="tool-image">
+                    🌍
+                </div>
+            </div>
+            <div class="tool-content">
+                <h3 class="tool-title">Flooky Translator</h3>
+                <p class="tool-description">
+                    Translate documents, websites, and text with context-aware AI translation that preserves meaning and tone.
+                </p>
+                <span class="tool-badge">Coming Soon</span>
+            </div>
+        </div>
+
+        <!-- Image Analyzer -->
+        <div class="tool-card coming-soon">
+            <div class="tool-image-container">
+                <div class="tool-image">
+                    🖼️
+                </div>
+            </div>
+            <div class="tool-content">
+                <h3 class="tool-title">Flooky Image Analyzer</h3>
+                <p class="tool-description">
+                    Analyze images for content, extract text (OCR), identify objects, and get detailed descriptions powered by AI vision.
+                </p>
+                <span class="tool-badge">Coming Soon</span>
+            </div>
+        </div>
+
+        <!-- PDF Processor -->
+        <div class="tool-card coming-soon">
+            <div class="tool-image-container">
+                <div class="tool-image">
+                    📑
+                </div>
+            </div>
+            <div class="tool-content">
+                <h3 class="tool-title">Flooky PDF Processor</h3>
+                <p class="tool-description">
+                    Extract, summarize, and analyze PDF documents. Convert PDFs to different formats and chat with your documents.
+                </p>
+                <span class="tool-badge">Coming Soon</span>
+            </div>
+        </div>
+
+        <!-- Social Media Manager -->
+        <div class="tool-card coming-soon">
+            <div class="tool-image-container">
+                <div class="tool-image">
+                    📱
+                </div>
+            </div>
+            <div class="tool-content">
+                <h3 class="tool-title">Flooky Social Manager</h3>
+                <p class="tool-description">
+                    Plan, create, and schedule social media content across platforms with AI-generated posts and optimal timing suggestions.
+                </p>
+                <span class="tool-badge">Coming Soon</span>
+            </div>
+        </div>
+
+        <!-- Meeting Summarizer -->
+        <div class="tool-card coming-soon">
+            <div class="tool-image-container">
+                <div class="tool-image">
+                    🎙️
+                </div>
+            </div>
+            <div class="tool-content">
+                <h3 class="tool-title">Flooky Meeting Summarizer</h3>
+                <p class="tool-description">
+                    Record and summarize meetings automatically. Extract action items, key decisions, and generate follow-up tasks.
+                </p>
+                <span class="tool-badge">Coming Soon</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer Message -->
+    <div class="text-center mt-5">
+        <p class="text-muted">
+            <i class="fas fa-lightbulb me-2"></i>
+            Have an idea for a new tool? <a href="/contact" class="text-decoration-none" style="color: var(--primary-color);">Contact us</a> and let us know!
+        </p>
+    </div>
+</div>
+{% endblock %}
